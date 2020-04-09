@@ -11,7 +11,7 @@ commands:
     description: Charger une partie enregistree
     usage: /gotload
   gotstop:
-    description: Arrêter la partie
+    description: Arreter la partie
     usage: /gotstop
   gotmeetup:
     description: Rassembler les joueurs avant le lancement
@@ -23,7 +23,7 @@ commands:
     description: Pour vous reveler en tant que taupe !
     usage: /reveal
   claim:
-    description: Pour réclamer votre kit de taupe !
+    description: Pour reclamer votre kit de taupe !
     usage: /claim
   superreveal:
     description: Pour vous reveler en tant que supertaupe !
@@ -34,3 +34,12 @@ commands:
   gotlobby:
     description: Passer en mode aventure dans le lobby
     usage: /gotlobby
+  bucheron:
+    description: Recuperer les outils de bucheron en debut de partie
+    usage: /bucheron
+  mineur:
+    description: Recuperer les outils de mineur en debut de partie
+    usage: /mineur
+  chasseur:
+    description: Recuperer les outils de chasseur en debut de partie
+    usage: /chasseur

@@ -3,6 +3,8 @@ package fr.vraken.gameoftaupes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -11,8 +13,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
@@ -34,11 +40,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Banner;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
@@ -117,7 +127,7 @@ public class EventsClass implements Listener
 	public static void openTeamInv(Player p)
 	{
 		Inventory inv = Bukkit.createInventory(p, 9, ChatColor.GOLD + 
-				"    Choisir " + plugin.teamChoiceString);
+				"Choisir " + plugin.teamChoiceString);
 
 		addItem(inv, ChatColor.LIGHT_PURPLE, DyeColor.PINK, plugin.teamf.getString("rose.name"), 0);
 		addItem(inv, ChatColor.YELLOW, DyeColor.YELLOW, plugin.teamf.getString("jaune.name"), 1);
@@ -125,7 +135,7 @@ public class EventsClass implements Listener
 		addItem(inv, ChatColor.AQUA, DyeColor.CYAN, plugin.teamf.getString("cyan.name"), 3);
 		addItem(inv, ChatColor.GREEN, DyeColor.GREEN, plugin.teamf.getString("verte.name"), 4);
 		addItem(inv, ChatColor.GRAY, DyeColor.GRAY, plugin.teamf.getString("grise.name"), 5);
-		addItem(inv, ChatColor.WHITE, DyeColor.WHITE, "Quitter son ï¿½quipe", 6);
+		addItem(inv, ChatColor.WHITE, DyeColor.WHITE, "Quitter son equipe", 6);
 
 		p.openInventory(inv);
 	}
@@ -133,7 +143,9 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void OnChatEvent(AsyncPlayerChatEvent e)
 	{
+		
 		Team team = e.getPlayer().getScoreboard().getPlayerTeam(e.getPlayer());
+		if(team==null) return;
 		String format = team.getPrefix() + "<%s> " + ChatColor.WHITE + "%s";
 		e.setFormat(format);
 	}
@@ -147,16 +159,24 @@ public class EventsClass implements Listener
         }
 		
 		Player p = (Player)e.getWhoClicked();
-		if (e.getInventory().getName().equals(ChatColor.GOLD + "    Choisir " + plugin.teamChoiceString) && e.getCurrentItem().getType() == Material.BANNER)
+		if (e.getInventory().getName().equals(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString) && e.getCurrentItem().getType() == Material.BANNER)
 		{
 			BannerMeta banner = (BannerMeta)e.getCurrentItem().getItemMeta();
-
-			if (banner.getBaseColor() == DyeColor.PINK) 
+			
+			String bname = banner.getDisplayName();
+			
+			
+			//Bukkit.broadcastMessage(bname+" sélectionné");
+			
+			
+			if (bname.contains(plugin.teamf.getString("rose.name"))) 
 			{
+				
+				
 				if (plugin.rose.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.rose.getPrefix() + 
-							" Vous avez rejoint " + plugin.teamf.getString("rose.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("rose.name"));
 					plugin.rose.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -165,14 +185,14 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.CYAN) {
+			if (bname.contains(plugin.teamf.getString("cyan.name"))) {
 				if (plugin.cyan.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.cyan.getPrefix() + 
-							" Vous avez rejoint " + plugin.teamf.getString("cyan.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("cyan.name"));
 					plugin.cyan.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -181,14 +201,14 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.YELLOW) {
+			if (bname.contains(plugin.teamf.getString("jaune.name"))) {
 				if (plugin.jaune.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.jaune.getPrefix() + 
-							" Vous avez rejoint " + plugin.teamf.getString("jaune.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("jaune.name"));
 					plugin.jaune.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -197,14 +217,14 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.PURPLE) {
+			if (bname.contains(plugin.teamf.getString("violette.name"))) {
 				if (plugin.violette.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.violette.getPrefix() + 
-							" Vous avez rejoint " + plugin.teamf.getString("violette.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("violette.name"));
 					plugin.violette.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -213,14 +233,14 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.GREEN) {
+			if (bname.contains(plugin.teamf.getString("verte.name"))) {
 				if (plugin.verte.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.verte.getPrefix() + 
-							" Vous avez rejoint " + plugin.teamf.getString("verte.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("verte.name"));
 					plugin.verte.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -229,14 +249,14 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.GRAY) {
+			if (bname.contains(plugin.teamf.getString("grise.name"))) {
 				if (plugin.grise.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
 					p.sendMessage(plugin.grise.getPrefix() +
-							" Vous avez rejoint " + plugin.teamf.getString("grise.name"));
+							"Vous avez rejoint " + plugin.teamf.getString("grise.name"));
 					plugin.grise.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
 					{
@@ -245,10 +265,10 @@ public class EventsClass implements Listener
 				}
 				else
 				{
-					p.sendMessage(ChatColor.RED + "Cette ï¿½quipe est complï¿½te !");
+					p.sendMessage(ChatColor.RED + "Cette equipe est complete !");
 				}
 			}
-			if (banner.getBaseColor() == DyeColor.WHITE) 
+			if (bname.contains("Quitter son equipe")) 
 			{				
 				if(plugin.playersInTeam.contains(p.getUniqueId()))
 				{
@@ -265,7 +285,8 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void CancelRegen(EntityRegainHealthEvent e)
 	{
-		if (e.getRegainReason().equals(EntityRegainHealthEvent.RegainReason.SATIATED)) {
+		Entity en=e.getEntity();
+		if (e.getRegainReason().equals(EntityRegainHealthEvent.RegainReason.SATIATED) &&  en.getWorld()==Bukkit.getWorld(plugin.getConfig().getString("world"))) {
 			e.setCancelled(true);
 		}
 	}
@@ -488,10 +509,12 @@ public class EventsClass implements Listener
 	public void PlayerDeathInGame(PlayerDeathEvent e)
 	{
 		Player player = e.getEntity();
+		
+		String deathmsg ="Ep"+plugin.episode+"-"+plugin.minute+":"+plugin.objSecond+" "+e.getDeathMessage();
 
 		if(plugin.playersAlive.contains(player.getUniqueId()))
 		{	    	    
-			plugin.deathf.addDefault(player.getName(), (String)e.getDeathMessage());
+			plugin.deathf.addDefault(player.getName(), deathmsg);
 			plugin.deathf.options().copyDefaults(true);
 			try 
 			{
@@ -569,7 +592,7 @@ public class EventsClass implements Listener
 			{
 				if(!plugin.playersAlive.contains(pl.getUniqueId()))
 				{
-					pl.sendMessage(victor + " a remportï¿½ son duel contre " + loser + " !");
+					pl.sendMessage(victor + " a remporte son duel contre " + loser + " !");
 				}
 			}
 			plugin.duelInProgress = false;
@@ -583,7 +606,14 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void BrewCancel(BrewEvent e)
 	{
+					
 		BrewerInventory bi = e.getContents();
+		
+		Block block=e.getBlock();
+		
+		if (block.getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+		
+		
 		if ((bi.getIngredient().getType().equals(Material.GLOWSTONE_DUST)) && 
 				(!plugin.getConfig().getBoolean("potions.allowglowstone")))
 		{
@@ -627,24 +657,24 @@ public class EventsClass implements Listener
 		}.runTaskLater(plugin, 4L);
 	}*/
 	
-	@EventHandler
-	public void CancelDropInLobby(PlayerDropItemEvent e)
-	{
-		Player p = e.getPlayer();
-		if (p.getWorld().equals(Bukkit.getWorld(plugin.getConfig().get("lobby.world").toString()))) 
-		{
-			Location loc = p.getLocation();
-			if(loc.getX() < plugin.minigamef.getInt("skywars.bound_min.X") 
-					|| loc.getX() > plugin.minigamef.getInt("skywars.bound_max.X")
-					|| loc.getY() < plugin.minigamef.getInt("skywars.bound_min.Y")
-					|| loc.getY() > plugin.minigamef.getInt("skywars.bound_max.Y")
-					|| loc.getZ() < plugin.minigamef.getInt("skywars.bound_min.Z")
-					|| loc.getZ() > plugin.minigamef.getInt("skywars.bound_max.Z"))
-			{
-				e.setCancelled(true);
-			}
-		}
-	}
+//	@EventHandler
+//	public void CancelDropInLobby(PlayerDropItemEvent e)
+//	{
+//		Player p = e.getPlayer();
+//		if (p.getWorld().equals(Bukkit.getWorld(plugin.getConfig().get("lobby.world").toString()))) 
+//		{
+//			Location loc = p.getLocation();
+//			if(loc.getX() < plugin.minigamef.getInt("skywars.bound_min.X") 
+//					|| loc.getX() > plugin.minigamef.getInt("skywars.bound_max.X")
+//					|| loc.getY() < plugin.minigamef.getInt("skywars.bound_min.Y")
+//					|| loc.getY() > plugin.minigamef.getInt("skywars.bound_max.Y")
+//					|| loc.getZ() < plugin.minigamef.getInt("skywars.bound_min.Z")
+//					|| loc.getZ() > plugin.minigamef.getInt("skywars.bound_max.Z"))
+//			{
+//				e.setCancelled(true);
+//			}
+//		}
+//	}
 	
 	/*@EventHandler
 	public void CancelPVP(EntityDamageEvent e)
@@ -661,22 +691,38 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void CancelPVPInGame(EntityDamageByEntityEvent e)
 	{		
-		if (!pvp && 
-				e.getDamager() instanceof Player && 
-				e.getEntity() instanceof Player) 
+		if (	e.getDamager() instanceof Player && 
+				e.getEntity() instanceof Player)
 		{
-			Player player = (Player)e.getEntity();
-			if(plugin.playersInLobby.contains(player.getUniqueId()))
+			
+		Player damager=	(Player) e.getDamager();
+		Player player = (Player)e.getEntity();
+			
+			if (!pvp )		
 			{
-				return;
+				
+				if(plugin.playersInLobby.contains(player.getUniqueId()))
+				{
+					return;
+				}
+				e.setCancelled(true);
 			}
-			e.setCancelled(true);
+			else if(damager.getInventory().getItemInMainHand().getType()==Material.GOLD_SWORD) {
+				
+				damager.sendMessage(ChatColor.DARK_RED+"Cette épée ne peut pas être utilisée en pvp");
+				player.setFireTicks(0);
+				e.setCancelled(true);
+			}
 		}
 	}
 	
 	@EventHandler
 	public void OnPlayerOpenTreasureChest(PlayerInteractEvent e)
 	{
+		
+		
+		if(e.getPlayer().getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+		
 		if(e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.TRAPPED_CHEST)
 		{
 			if(e.getClickedBlock().getLocation().distance(plugin.chestLocation) <= 10.0f)
@@ -793,17 +839,23 @@ public class EventsClass implements Listener
 		if(!plugin.getConfig().getBoolean("options.autosmelting"))
 			return;
 		
+		if (e.getBlock().getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+		
 		if(e.getBlock().getType() == Material.IRON_ORE)
 		{
 			e.getBlock().setType(Material.AIR);
 			e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.IRON_INGOT, 1));
-			e.setExpToDrop(1);
+			
+	    	ExperienceOrb orb = e.getBlock().getWorld().spawn(e.getBlock().getLocation(), ExperienceOrb.class);
+	    	orb.setExperience(1);
 		}
 		else if(e.getBlock().getType() == Material.GOLD_ORE)
 		{
 			e.getBlock().setType(Material.AIR);
 			e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.GOLD_INGOT, 1));
-			e.setExpToDrop(1);
+			
+			ExperienceOrb orb = e.getBlock().getWorld().spawn(e.getBlock().getLocation(), ExperienceOrb.class);
+	    	orb.setExperience(2);
 		}
 	}
 	
@@ -834,12 +886,16 @@ public class EventsClass implements Listener
     @EventHandler
     public void OnInventoryClick(BlockPlaceEvent e) 
     {
-		if(!plugin.getConfig().getBoolean("options.fastcooking"))
+		
+    	
+    	
+    	if(!plugin.getConfig().getBoolean("options.fastcooking"))
 		{
 			return;
 		}
 		
     	Block block = e.getBlock();
+    	if (block.getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
     	
     	if(block.getType() == Material.FURNACE || block.getType() == Material.BURNING_FURNACE)
     	{
@@ -847,4 +903,68 @@ public class EventsClass implements Listener
             furnace.setCookTime((short)100);
     	}
     }
+    
+    
+    @EventHandler
+    public void OnLeaveDecay(LeavesDecayEvent e) 
+    {
+    	
+    
+    
+    World world =e.getBlock().getWorld();
+    Location blockpos=e.getBlock().getLocation();
+    Integer dropchance = 50;
+    Random random = new Random();
+    ItemStack drop = new ItemStack(Material.APPLE,1);
+    
+    if (world!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+   
+    if (random.nextInt((dropchance - 0) + 1) + 0==dropchance) {
+    	
+    	world.dropItem(blockpos, drop);
+    	ExperienceOrb orb = world.spawn(blockpos, ExperienceOrb.class);
+    	orb.setExperience(3);
+    	
+    }
+    
+    	
+    	return;
+    }
+    
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        Player player = event.getPlayer();
+        
+        if (player.getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+ 
+        if (event.getCause() == TeleportCause.ENDER_PEARL) {
+            event.setCancelled(true);
+ 
+            player.teleport(event.getTo());
+        }
+        
+        if (event.getCause() == TeleportCause.CHORUS_FRUIT) {
+            
+        	event.setCancelled(true);
+        	
+        	Integer playerX=player.getLocation().getBlockX();
+        	Integer playerZ=player.getLocation().getBlockZ();
+        	
+        	Block blockground=player.getWorld().getHighestBlockAt(playerX,playerZ);
+        	
+        	blockground.setType(Material.PURPUR_PILLAR);
+        	
+        	Integer surfaceY=blockground.getLocation().getBlockY();
+        	
+        	Location destinationTP =new Location(player.getWorld(),playerX,surfaceY+1,playerZ);
+ 
+            player.teleport(destinationTP);
+            
+            if (player.getHealth()>2) player.setHealth(2);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 600, 2));
+        }
+        
+    }
+    
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.UUID;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
@@ -62,7 +64,8 @@ public class GameOfTaupes extends JavaPlugin {
 	ArrayList<UUID> playersAlive = new ArrayList<UUID>();
 	ArrayList<UUID> playersInLobby = new ArrayList<UUID>();
 	ArrayList<UUID> playersSpec = new ArrayList<UUID>();
-
+	ArrayList<UUID> playersWithJob = new ArrayList<UUID>();
+	
 	// Taupes
 	boolean taupessetup;
 	HashMap<Integer, Integer> taupesperteam = new HashMap<Integer, Integer>();
@@ -120,6 +123,7 @@ public class GameOfTaupes extends JavaPlugin {
 	boolean meetUp = false;
 	boolean gameStarted = false;
 	boolean gameEnd = false;
+	boolean pvp = false;
 	Location lobbyLocation;
 	Location meetupLocation;
 	Location respawnLocation;
@@ -300,6 +304,7 @@ public class GameOfTaupes extends JavaPlugin {
 		this.taupessetup = false;
 		this.supertaupessetup = false;
 		this.tmpBorder = this.getConfig().getInt("worldborder.size");
+		this.pvp = false;
 
 		String world = getConfig().getString("world");
 		Boolean istimecycle = getConfig().getBoolean("options.timecycle");
@@ -510,6 +515,7 @@ public class GameOfTaupes extends JavaPlugin {
 		new BukkitRunnable() {
 			public void run() {
 				EventsClass.pvp = true;
+				GameOfTaupes.this.pvp=true;
 				Bukkit.broadcastMessage(ChatColor.RED + "Le pvp est maintenant actif !");
 
 				// Updating scoreboard status
@@ -676,7 +682,8 @@ public class GameOfTaupes extends JavaPlugin {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			if (!GameOfTaupes.this.playersInLobby.contains(p.getUniqueId())) {
 				GameOfTaupes.this.playersInLobby.add(p.getUniqueId());
-
+				
+				p.getInventory().clear();
 				p.setGameMode(GameMode.ADVENTURE);
 				p.teleport(lobbyLocation);
 			}
@@ -1168,12 +1175,15 @@ public class GameOfTaupes extends JavaPlugin {
 					} else if (!this.showedtaupes.contains(player.getUniqueId())) {
 						player.sendMessage(ChatColor.RED + "Vous devez d'abord vous reveler en tant que taupe !");
 					} else {
+
+						this.aliveTaupes.remove(player.getUniqueId());
+						this.supertaupesteam.get(key).addPlayer(player);
+						this.showedsupertaupes.add(player.getUniqueId());
+						
 						PlayerInventory inventory = player.getInventory();
 						inventory.addItem(new ItemStack[] { new ItemStack(Material.GOLDEN_APPLE, 2) });
 
-						this.aliveTaupes.remove(player.getUniqueId());
-						this.supertaupesteam.get(key).addPlayer((OfflinePlayer) player);
-						this.showedsupertaupes.add(player.getUniqueId());
+						
 						for (Player online : Bukkit.getOnlinePlayers()) {
 							online.playSound(online.getLocation(), Sound.ENTITY_GHAST_SCREAM, 10.0F, -10.0F);
 							online.playSound(online.getLocation(), Sound.ENTITY_GHAST_SCREAM, 10.0F, -10.0F);
@@ -1258,13 +1268,26 @@ public class GameOfTaupes extends JavaPlugin {
 			// DEAD PLAYER SPEC
 			// ----------------
 			if (cmd.getName().equalsIgnoreCase("gotspec") && this.playersInLobby.contains(player.getUniqueId())
-					&& this.gameStarted && !this.gameEnd) {
+					&& this.gameStarted && !this.gameEnd) 
+			{
 				this.playersSpec.add(player.getUniqueId());
 				this.playersInLobby.remove(player.getUniqueId());
 				player.setGameMode(GameMode.SPECTATOR);
 				player.teleport(new Location(Bukkit.getWorld(this.getConfig().getString("world")), 0, 120, 0));
 				return true;
 			}
+			
+			//METIERS DEBUT GAME
+			// ----------------
+			if (cmd.getName().equalsIgnoreCase("bucheron") ||cmd.getName().equalsIgnoreCase("mineur") ||cmd.getName().equalsIgnoreCase("chasseur"))
+			{
+				if (this.gameStarted && !this.gameEnd) 
+				{
+					setJob(player,cmd.getName());
+					return true;
+				}
+			}
+			
 		}
 		return false;
 	}
@@ -1428,8 +1451,21 @@ public class GameOfTaupes extends JavaPlugin {
 					20 * getConfig().getInt("options.nodamagetime"), 4));
 
 			if (this.getConfig().getBoolean("options.haste")) {
-				p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, 0));
+				p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, 2));
 			}
+			
+			p.getInventory().setItemInMainHand(new ItemStack(Material.GOLDEN_APPLE,2));
+			
+			//DON D'UNE CORDE SORTIE
+			ItemStack item=new ItemStack(Material.CHORUS_FRUIT,1);
+			ItemMeta itemM=item.getItemMeta();
+			itemM.setDisplayName(ChatColor.YELLOW+"Corde sortie");
+			itemM.setLore(Arrays.asList("N'utiliser qu'en cas d'urgence","Permet de se téléporter à la surface","Effets secondaires : Perte de vie, nausées"));		
+			item.setItemMeta(itemM);
+
+			
+			p.getInventory().setItem(9,item);
+			
 		}
 	}
 
@@ -2127,7 +2163,7 @@ public class GameOfTaupes extends JavaPlugin {
 		loc.add(player.getEyeLocation().getDirection().normalize());
 		switch (kitnumber) {
 		case (0):
-			kit.setAmount(3);
+			kit.setAmount(5);
 			kit.setType(Material.TNT);
 			player.getWorld().dropItemNaturally(loc, kit);
 			kit.setAmount(1);
@@ -2135,7 +2171,7 @@ public class GameOfTaupes extends JavaPlugin {
 			player.getWorld().dropItemNaturally(loc, kit);
 			break;
 		case (1):
-			kit.setAmount(3);
+			kit.setAmount(5);
 			kit.setType(Material.MONSTER_EGG);
 			kit.setDurability((short) 61);
 			player.getWorld().dropItemNaturally(loc, kit);
@@ -2146,7 +2182,7 @@ public class GameOfTaupes extends JavaPlugin {
 			player.getWorld().dropItemNaturally(loc, kit);
 			kit.setAmount(1);
 			kit.setType(Material.BOW);
-			kit.addEnchantment(Enchantment.ARROW_DAMAGE, 1);
+			kit.addEnchantment(Enchantment.ARROW_DAMAGE, 2);
 			player.getWorld().dropItemNaturally(loc, kit);
 			break;
 		case (3):
@@ -2171,14 +2207,14 @@ public class GameOfTaupes extends JavaPlugin {
 		case (4):
 			kit.setAmount(1);
 			kit.setType(Material.DIAMOND_PICKAXE);
-			kit.addEnchantment(Enchantment.DIG_SPEED, 1);
-			kit.addEnchantment(Enchantment.DURABILITY, 1);
+			kit.addEnchantment(Enchantment.DIG_SPEED, 3);
+			kit.addEnchantment(Enchantment.DURABILITY, 3);
 			player.getWorld().dropItemNaturally(loc, kit);
 			break;
 		case (5):
 			kit.setAmount(1);
 			kit.setType(Material.DIAMOND_CHESTPLATE);
-			kit.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
+			kit.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 4);
 			player.getWorld().dropItemNaturally(loc, kit);
 			break;
 		case (6):
@@ -2189,6 +2225,12 @@ public class GameOfTaupes extends JavaPlugin {
 			kit.setType(Material.DIAMOND_BOOTS);
 			kit.addEnchantment(Enchantment.PROTECTION_FALL, 4);
 			kit.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 2);
+			player.getWorld().dropItemNaturally(loc, kit);
+			break;
+		case(7):
+			kit.setAmount(1);
+			kit.setType(Material.DIAMOND_SWORD);
+			kit.addEnchantment(Enchantment.DAMAGE_ALL, 3);
 			player.getWorld().dropItemNaturally(loc, kit);
 			break;
 		default:
@@ -2266,7 +2308,97 @@ public class GameOfTaupes extends JavaPlugin {
 		}
 	}
 
-	// TODO
-	public void testIfBossDespawn() {
+//	// TODO
+//	public void testIfBossDespawn() {
+//	}
+	
+	//COMMANDES METIERS DEBUT DE PARTIE
+	
+	//BUCHERON
+	public void setJob(Player player,String job) {
+		
+		if(this.playersWithJob.contains(player.getUniqueId())){
+			
+			player.sendMessage(ChatColor.DARK_RED+"Vous avez déjà un métier !");
+			
+			return;
+			
+		}else if (this.pvp) {
+			
+			player.sendMessage(ChatColor.DARK_RED+"Trop tard pour choisir un métier");
+					
+			return;
+			
+		} else 
+		{
+			
+			player.sendMessage(ChatColor.GREEN+"Vous avez choisi le métier de "+ job);
+			this.playersWithJob.add(player.getUniqueId());
+			
+			Location ploc = player.getLocation();
+			World world = player.getWorld();
+			
+			ItemStack givenItem;
+			
+			switch(job) 
+			{
+			
+				case "bucheron":
+					
+					givenItem = new ItemStack(Material.GOLD_AXE, 1);
+		            givenItem.addEnchantment(Enchantment.DURABILITY, 3);
+		            givenItem.addEnchantment(Enchantment.DIG_SPEED, 5);
+		            givenItem.addEnchantment(Enchantment.DAMAGE_ALL, 5);
+		            givenItem.addEnchantment(Enchantment.VANISHING_CURSE, 1);
+		            
+		           world.dropItem(ploc, givenItem);
+							           
+					return;
+					
+				case "mineur":
+					
+					givenItem = new ItemStack(Material.STONE_PICKAXE, 1);
+		            givenItem.addEnchantment(Enchantment.DURABILITY, 1);
+		            givenItem.addEnchantment(Enchantment.DIG_SPEED, 3);
+		            givenItem.addEnchantment(Enchantment.VANISHING_CURSE, 1);
+		            
+		           world.dropItem(ploc, givenItem);
+		           
+		           
+					givenItem = new ItemStack(Material.GOLD_SPADE, 1);
+		            givenItem.addEnchantment(Enchantment.DURABILITY, 1);
+		            givenItem.addEnchantment(Enchantment.DIG_SPEED, 3);
+		            givenItem.addEnchantment(Enchantment.VANISHING_CURSE, 1);
+		            
+		           world.dropItem(ploc, givenItem);
+					
+					return;
+					
+				case "chasseur":
+					
+					givenItem = new ItemStack(Material.GOLD_SWORD, 1);
+		            givenItem.addEnchantment(Enchantment.LOOT_BONUS_MOBS, 2);
+		            givenItem.addEnchantment(Enchantment.DAMAGE_ALL, 5);
+		            givenItem.addEnchantment(Enchantment.FIRE_ASPECT, 2);
+		            givenItem.addEnchantment(Enchantment.VANISHING_CURSE, 1);
+		            
+		            
+		           world.dropItem(ploc, givenItem);
+									
+					
+					return;
+			
+			}
+			
+			
+			
+			
+			
+			
+		}
+		
+		
 	}
+
+
 }

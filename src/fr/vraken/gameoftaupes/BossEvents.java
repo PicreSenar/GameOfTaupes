@@ -71,6 +71,7 @@ public class BossEvents implements Listener
 	{
 		plugin = gameoftaupes;
 		this.bossManager = bossManager;
+		
 	}
 	
 	
@@ -802,6 +803,7 @@ public class BossEvents implements Listener
 					ItemStack slow = new ItemStack(Material.POTION);
 					p.apply(slow);
 					pot.setItem(slow);
+					
 					/*
 					e.setCancelled(true);
 					ThrownPotion tpot = witch.launchProjectile(ThrownPotion.class);
