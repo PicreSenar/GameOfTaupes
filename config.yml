@@ -1,0 +1,72 @@
+worldborder:
+  size: 1000
+  finalsize: 150
+  retractafter: 4
+  episodestorestract: 1
+  finalretract: 70
+potions:
+  allowglowstone: false
+  regeneration: false
+  strength: false
+lobby:
+  world: BreeVillageofMen
+  X: 1000
+  Y: 50
+  Z: -500
+  respawnX: 1000
+  respawnY: 50
+  respawnZ: -500
+  meetupX: 968
+  meetupY: 114
+  meetupZ: -530
+chest:
+  random: true
+  timer: 2
+  X: 0
+  Y: 113
+  Z: 0
+world: GOT
+world_nether: GOT_nether
+options:
+  taupesperteam: 1
+  taupesteams: 1
+  nodamagetime: 60
+  timecycle: false
+  minplayers: 4
+  pvptime: 3
+  cooldown: false
+  playersperteam: 7
+  settaupesafter: 1
+  forcereveal: 5
+  supertaupe: true
+  setsupertaupesafter: 2
+  superreveal: 6
+  autosmelting: false
+  fastcooking: true
+  cookingmultiplier: 10
+  haste: true
+  saturation: true
+  meetupteamtp: true
+  revealing: false
+  shieldcooldown: 1
+  job:
+    mineur: true
+    bucheron: true
+    chasseur: false
+duelspawn1:
+  X: -8081
+  Y: 7
+  Z: -9934
+duelspawn2:
+  X: -8020
+  Y: 7
+  Z: -9995
+portal:
+  X: 2000
+  Y: 103
+  Z: 2000
+Disallowed enchants:
+  PROTECTION_ENVIRONMENTAL: 1
+  DAMAGE_ALL: 2
+  FIRE_ASPECT: -1
+  ARROW_FIRE: -1
