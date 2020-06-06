@@ -8,8 +8,11 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -126,6 +129,11 @@ public class GameOfTaupes extends JavaPlugin {
 	NumberFormat objFormatter;
 	int height = 10;
 	int minuteTot = 0;
+	
+	int eventIndex;	
+	HashMap<Integer, Integer> eventTimers = new HashMap<Integer, Integer>();
+	HashMap<Integer, String> eventStrings = new HashMap<Integer, String>();
+	ArrayList<Integer> sortedByTimer = new ArrayList<Integer>();
 
 
 	// Gamestates
@@ -321,12 +329,16 @@ public class GameOfTaupes extends JavaPlugin {
 				this.getConfig().getInt("lobby.respawnZ"));
 
 		setSpawnLocations();
+		
+		SetScoreboardSteps();
+		
 		// setDuelSpawnLocations();
 
 		super.onEnable();
 	}
 
-	public void startGame() {
+	public void startGame() 
+	{
 		this.gameStarted = true;
 		this.gameState = 0;
 		this.hasChangedGS = false;
@@ -371,7 +383,7 @@ public class GameOfTaupes extends JavaPlugin {
 		// SCOREBOARD INITIALIZATION
 		// -------------------------
 		this.objFormatter = new DecimalFormat("00");
-		initScoreboard(this.gameState);
+		initScoreboard();
 
 		// SPAWNING CHEST
 		// --------------
@@ -409,9 +421,8 @@ public class GameOfTaupes extends JavaPlugin {
 
 				// SCOREBOARD RESET AT EVERY SECOND
 				// --------------------------------
-				NumberFormat formatter = new DecimalFormat("00");
-				String minute = formatter.format(this.minutes);
-				String second = formatter.format(this.seconds);
+				String minute = GameOfTaupes.this.objFormatter.format(this.minutes);
+				String second = GameOfTaupes.this.objFormatter.format(this.seconds);
 				GameOfTaupes.this.s.resetScores(minute + ":" + second);
 				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + "Episode " + GameOfTaupes.this.episode);
 				GameOfTaupes.this.s
@@ -419,11 +430,6 @@ public class GameOfTaupes extends JavaPlugin {
 				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + "Border : " + tmpBorder + " x " + tmpBorder);
 				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
 
-				// UPDATE COMPASS TARGET
-				// ---------------------
-				if (GameOfTaupes.this.bossf.getBoolean("boss.active")) {
-					updateCompassTarget();
-				}
 
 				if (this.seconds == 0) {
 					// CHEST SPAWN
@@ -431,29 +437,6 @@ public class GameOfTaupes extends JavaPlugin {
 					if (!GameOfTaupes.this.getConfig().getBoolean("chest.random") && GameOfTaupes.this.taupessetup
 							&& this.minutes == 15 - chestMinute) {
 						spawnChest();
-					}
-
-					// SPAWNING MINIBOSS
-					// -----------------
-					if (GameOfTaupes.this.bossf.getBoolean("boss.active")) {
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 1) {
-							GameOfTaupes.this.bossManager.activateShrine(1);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 1) {
-							GameOfTaupes.this.bossManager.activateShrine(2);
-						}
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 2) {
-							GameOfTaupes.this.bossManager.activateShrine(3);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 2) {
-							GameOfTaupes.this.bossManager.activateShrine(4);
-						}
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 3) {
-							GameOfTaupes.this.bossManager.activateShrine(5);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 3) {
-							GameOfTaupes.this.bossManager.activateShrine(6);
-						}
 					}
 
 					// EPISODE CHANGE ANNOUNCEMENT AT BEGINNING
@@ -503,16 +486,6 @@ public class GameOfTaupes extends JavaPlugin {
 			}
 		}.runTaskTimer(this, 0L, 20L);
 
-		// REVEALING A PLAYER'S LOCATION
-		// -----------------------------
-		if (this.getConfig().getBoolean("option.revealing")) {
-			new BukkitRunnable() {
-				public void run() {
-					RevealPlayerLocation(false);
-				}
-			}.runTaskTimer(this, 6000, 12000);
-		}
-		
 		
 		
 		getServer().getWorld(getConfig().getString("world")).getWorldBorder()
@@ -555,16 +528,7 @@ public class GameOfTaupes extends JavaPlugin {
 				taupeAnnouncement();
 
 				// Updating scoreboard status
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("options.setsupertaupesafter")
-								- GameOfTaupes.this.getConfig().getInt("options.settaupesafter") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "Supertaupe : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.settaupesafter"));
 
@@ -575,16 +539,7 @@ public class GameOfTaupes extends JavaPlugin {
 				supertaupeAnnouncement();
 
 				// Updating scoreboard status
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("worldborder.pvptime")
-								- GameOfTaupes.this.getConfig().getInt("options.setsupertaupesafter") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "PVP : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.setsupertaupesafter"));
 		
@@ -597,16 +552,7 @@ public class GameOfTaupes extends JavaPlugin {
 				Bukkit.broadcastMessage(ChatColor.RED + "Le pvp est maintenant actif !");
 
 				// Updating scoreboard status
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("options.retractafter")
-								- GameOfTaupes.this.getConfig().getInt("options.pvptime") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "World border : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.pvptime"));
 
@@ -617,19 +563,7 @@ public class GameOfTaupes extends JavaPlugin {
 				forceReveal(true);
 
 				// Updating scoreboard status
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				if (!GameOfTaupes.this.getConfig().getBoolean("options.supertaupe")) {
-					return;
-				}
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("options.superreveal")
-								- GameOfTaupes.this.getConfig().getInt("options.forcereveal") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "Supertaupe reveal : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.forcereveal"));
 
@@ -640,16 +574,7 @@ public class GameOfTaupes extends JavaPlugin {
 				superReveal(true);
 
 				// Updating scoreboard status
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("worldborder.finalretract")
-								- GameOfTaupes.this.getConfig().getInt("options.superreveal") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "Final shrink : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.superreveal"));
 
@@ -658,16 +583,7 @@ public class GameOfTaupes extends JavaPlugin {
 		new BukkitRunnable() {
 			public void run() {
 				// UPDATING SCOREBOARD STATUS
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
-				GameOfTaupes.this.objMinute = objFormatter
-						.format(GameOfTaupes.this.getConfig().getInt("options.forcereveal")
-								- GameOfTaupes.this.getConfig().getInt("worldborder.retractafter") - 1);
-				GameOfTaupes.this.objSecond = "59";
-				GameOfTaupes.this.objTxt = "Taupes reveal : ";
-				GameOfTaupes.this.hasChangedGS = true;
-				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-						+ GameOfTaupes.this.objSecond;
+				UpdateScoreboardStep();
 
 				GameOfTaupes.this.retract = true;
 
@@ -686,8 +602,7 @@ public class GameOfTaupes extends JavaPlugin {
 		new BukkitRunnable() {
 			public void run() {
 				// UPDATING SCOREBOARD STATUS
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-				GameOfTaupes.this.gameState++;
+				UpdateScoreboardStep();
 
 				Bukkit.broadcastMessage(
 						"Retrecissement final de la carte ! Il ne restera bientot aucun endroit ou se cacher !");
@@ -730,401 +645,6 @@ public class GameOfTaupes extends JavaPlugin {
 		}
 
 		GameOfTaupes.this.gameEnd = true;
-	}
-
-	public void loadGame() throws FileNotFoundException, IOException, InvalidConfigurationException {
-		String world = getConfig().getString("world");
-		Boolean istimecycle = getConfig().getBoolean("options.timecycle");
-		Bukkit.getWorld(world).setGameRuleValue("doDaylightCycle", Boolean.valueOf(istimecycle).toString());
-		Bukkit.getWorld(world).setGameRuleValue("announceAdvancements","false");
-		Bukkit.getWorld(world).setGameRuleValue("doWeatherCycle","false");
-		Bukkit.getWorld(getConfig().getString("world")).setStorm(false);
-		Bukkit.getWorld(getConfig().getString("world")).setThundering(false);
-		Bukkit.getWorld(getConfig().get("world").toString()).setTime(5000L);
-
-		this.loadManager.loadPlayerInfos();
-		this.loadManager.loadGameInfos();
-
-		unregisterTeam();
-		unregisterTaupeTeam();
-
-		getServer().getWorld(getConfig().getString("world")).getWorldBorder().setSize(this.tmpBorder);
-
-		// SCOREBOARD INITIALIZATION
-		// -------------------------
-		this.objFormatter = new DecimalFormat("00");
-		initScoreboard(this.gameState);
-
-		// SPAWNING CHEST
-		// --------------
-		this.chestLocation = new Location(Bukkit.getWorld(getConfig().get("world").toString()),
-				getConfig().getInt("chest.X"), getConfig().getInt("chest.Y"), getConfig().getInt("chest.Z"));
-		this.redstoneLocation = new Location(Bukkit.getWorld(getConfig().get("world").toString()),
-				getConfig().getInt("chest.X"), getConfig().getInt("chest.Y") - 5, getConfig().getInt("chest.Z"));
-		this.chestMinute = 0;
-
-		this.minuteTot = this.episode * 20 - this.minute;
-		int minuteToReveal = (this.minuteTot - 5) % 10;
-		int minuteToChest = (this.minuteTot - 5) % this.getConfig().getInt("chest.timer");
-
-		// REVEALING A PLAYER'S LOCATION
-		// -----------------------------
-		new BukkitRunnable() {
-			public void run() {
-				RevealPlayerLocation(false);
-			}
-		}.runTaskTimer(this, minuteToReveal * 1200, 12000);
-
-		// SPAWN CHEST
-		// -----------
-		if (this.getConfig().getBoolean("chest.random")) {
-			new BukkitRunnable() {
-				public void run() {
-					if (GameOfTaupes.this.finalZone) {
-						this.cancel();
-					}
-
-					Random rdm = new Random();
-					int x = rdm.nextInt(GameOfTaupes.this.tmpBorder) - GameOfTaupes.this.tmpBorder / 2;
-					int z = rdm.nextInt(GameOfTaupes.this.tmpBorder) - GameOfTaupes.this.tmpBorder / 2;
-					int y = Bukkit.getWorld(GameOfTaupes.this.getConfig().getString("world")).getHighestBlockYAt(
-							new Location(Bukkit.getWorld(GameOfTaupes.this.getConfig().getString("world")), x, 0, z));
-					GameOfTaupes.this.chestLocation.setX(x);
-					GameOfTaupes.this.chestLocation.setY(y);
-					GameOfTaupes.this.chestLocation.setZ(z);
-					GameOfTaupes.this.redstoneLocation.setX(x);
-					GameOfTaupes.this.redstoneLocation.setY(120);
-					GameOfTaupes.this.redstoneLocation.setZ(z);
-					GameOfTaupes.this.chestLvl = (GameOfTaupes.this.episode > 3) ? 3 : GameOfTaupes.this.episode;
-
-					spawnChest();
-				}
-
-			}.runTaskTimer(this, minuteToChest * 1200, 1200 * this.getConfig().getInt("chest.timer"));
-		}
-
-		if (this.minuteTot < getConfig().getInt("options.pvptime")) {
-			// PVP ENABLE
-			// ----------
-			new BukkitRunnable() {
-				public void run() {
-					EventsClass.pvp = true;
-					Bukkit.broadcastMessage(ChatColor.RED + "Le pvp est maintenant actif !");
-
-					// Updating scoreboard status
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("worldborder.retractafter")
-									- GameOfTaupes.this.getConfig().getInt("options.pvptime") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "World Border : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("options.pvptime") - this.minuteTot));
-
-		} else {
-			EventsClass.pvp = false;
-		}
-
-		if (this.minuteTot < getConfig().getInt("options.settaupesafter")) {
-			// TAUPES ANNOUNCEMENT
-			// -------------------
-			new BukkitRunnable() {
-				public void run() {
-					taupeAnnouncement();
-
-					// Updating scoreboard status
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("options.setsupertaupesafter")
-									- GameOfTaupes.this.getConfig().getInt("options.settaupesafter") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "Supertaupe : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("options.settaupesafter") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("options.setsupertaupesafter")) {
-			// SUPERTAUPES ANNOUNCEMENT
-			// -------------------
-			new BukkitRunnable() {
-				public void run() {
-					supertaupeAnnouncement();
-
-					// Updating scoreboard status
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("options.pvptime")
-									- GameOfTaupes.this.getConfig().getInt("options.setsupertaupesafter") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "PVP : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("options.setsupertaupesafter") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("options.forcereveal")) {
-			// TAUPES REVEAL
-			// -------------
-			new BukkitRunnable() {
-				public void run() {
-					forceReveal(true);
-
-					// Updating scoreboard status
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					if (!GameOfTaupes.this.getConfig().getBoolean("options.supertaupe")) {
-						return;
-					}
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("options.superreveal")
-									- GameOfTaupes.this.getConfig().getInt("options.forcereveal") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "Supertaupe reveal : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("options.forcereveal") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("options.superreveal")) {
-			// SUPERTAUPE REVEAL
-			// ------------
-			new BukkitRunnable() {
-				public void run() {
-					superReveal(true);
-
-					// Updating scoreboard status
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("worldborder.finalretract")
-									- GameOfTaupes.this.getConfig().getInt("options.superreveal") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "Final shrink : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("options.superreveal") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("worldborder.retractafter")) {
-			// WORLDBORDER SHRINK
-			// ------------------
-			new BukkitRunnable() {
-				public void run() {
-					// UPDATING SCOREBOARD STATUS
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-					GameOfTaupes.this.objMinute = objFormatter
-							.format(GameOfTaupes.this.getConfig().getInt("options.forcereveal")
-									- GameOfTaupes.this.getConfig().getInt("worldborder.retractafter") - 1);
-					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objTxt = "Taupes reveal : ";
-					GameOfTaupes.this.hasChangedGS = true;
-					GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
-							+ GameOfTaupes.this.objSecond;
-
-					GameOfTaupes.this.retract = true;
-
-					Bukkit.broadcastMessage("La carte est en train de retrecir ! " + "Depechez-vous d'aller entre -"
-							+ (int) (getConfig().getDouble("worldborder.finalsize") / 2) + " et "
-							+ (int) (getConfig().getDouble("worldborder.finalsize") / 2) + " ! ");
-
-					getServer().getWorld(getConfig().getString("world")).getWorldBorder().setSize(
-							getConfig().getDouble("worldborder.finalsize"),
-							1200 * getConfig().getInt("worldborder.episodestorestract"));
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("worldborder.retractafter") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("worldborder.finalretract")) {
-			// FINAL SHRINK
-			// ------------
-			new BukkitRunnable() {
-				public void run() {
-					// UPDATING SCOREBOARD STATUS
-					GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-					GameOfTaupes.this.gameState++;
-
-					Bukkit.broadcastMessage(
-							"Retrecissement final de la carte ! Il ne restera bientot aucun endroit ou se cacher !");
-
-					GameOfTaupes.this.finalZone = true;
-
-					getServer().getWorld(getConfig().getString("world")).getWorldBorder().setSize(1, 60 * 10);
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("worldborder.finalretract") - this.minuteTot));
-
-		}
-
-		if (this.minuteTot < getConfig().getInt("worldborder.finalretract") + 20) {
-			// FINAL FINAL SHRINK
-			// ------------------
-			new BukkitRunnable() {
-				public void run() {
-					new BukkitRunnable() {
-						public void run() {
-							Block block = Bukkit.getWorld(getConfig().get("world").toString()).getBlockAt(0,
-									GameOfTaupes.this.height, 0);
-							block.setType(Material.AIR);
-							++GameOfTaupes.this.height;
-						}
-
-					}.runTaskTimer(GameOfTaupes.this, 0, 40);
-
-				}
-			}.runTaskLater(this, 1200 * (getConfig().getInt("worldborder.finalretract") + 20 - this.minuteTot));
-		}
-
-		if (this.retract) {
-			getServer().getWorld(getConfig().getString("world")).getWorldBorder().setSize(
-					getConfig().getDouble("worldborder.finalsize"),
-					60 * (20 * getConfig().getInt("worldborder.episodestorestract") - this.minuteTot
-							+ getConfig().getInt("worldborder.retractafter")));
-
-		}
-
-		if (this.finalretract) {
-			getServer().getWorld(getConfig().getString("world")).getWorldBorder().setSize(1,
-					60 * (10 - this.minuteTot + getConfig().getInt("worldborder.finalretract")));
-
-		}
-
-		// RUNNABLE TASKS DURING ALL GAME
-		// ------------------------------
-		this.runnable = new BukkitRunnable() {
-			int minutes = GameOfTaupes.this.minute;
-			int seconds = 0;
-
-			public void run() {
-				// TESTING IF BOSS HAS DESPAWNED
-				// -----------------------------
-				// TODO testIfBossDespawn();
-
-				GameOfTaupes.this.minute = minutes;
-
-				// SCOREBOARD RESET AT EVERY SECOND
-				// --------------------------------
-				NumberFormat formatter = new DecimalFormat("00");
-				String minute = formatter.format(this.minutes);
-				String second = formatter.format(this.seconds);
-				GameOfTaupes.this.s.resetScores(minute + ":" + second);
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + "Episode " + GameOfTaupes.this.episode);
-				GameOfTaupes.this.s
-						.resetScores("" + ChatColor.WHITE + GameOfTaupes.this.tmpPlayers + ChatColor.GRAY + " joueurs");
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + "Border : " + tmpBorder + " x " + tmpBorder);
-				GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
-
-				// UPDATE COMPASS TARGET
-				// ---------------------
-				if (GameOfTaupes.this.bossf.getBoolean("boss.active")) {
-					updateCompassTarget();
-				}
-
-				if (this.seconds == 0) {
-					// CHEST SPAWN
-					// -----------
-					if (!GameOfTaupes.this.getConfig().getBoolean("chest.random") && GameOfTaupes.this.taupessetup
-							&& this.minutes == 15 - chestMinute) {
-						spawnChest();
-					}
-
-					// SPAWNING MINIBOSS
-					// -----------------
-					if (GameOfTaupes.this.bossf.getBoolean("boss.active")) {
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 1) {
-							GameOfTaupes.this.bossManager.activateShrine(1);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 1) {
-							GameOfTaupes.this.bossManager.activateShrine(2);
-						}
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 2) {
-							GameOfTaupes.this.bossManager.activateShrine(3);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 2) {
-							GameOfTaupes.this.bossManager.activateShrine(4);
-						}
-						if (this.minutes == 15 && GameOfTaupes.this.episode == 3) {
-							GameOfTaupes.this.bossManager.activateShrine(5);
-						}
-						if (this.minutes == 5 && GameOfTaupes.this.episode == 3) {
-							GameOfTaupes.this.bossManager.activateShrine(6);
-						}
-					}
-
-					// EPISODE CHANGE ANNOUNCEMENT AT BEGINNING
-					// ----------------------------------------
-					if (this.minutes == 0) {
-						if (GameOfTaupes.this.taupessetup) {
-							Random rand = new Random();
-							chestMinute = rand.nextInt(11);
-						}
-
-						GameOfTaupes.this.episode += 1;
-						Bukkit.broadcastMessage(ChatColor.AQUA + "------------- Episode " + GameOfTaupes.this.episode
-								+ " -------------");
-
-						this.seconds = 59;
-						this.minutes = 19;
-					} else {
-						this.seconds = 59;
-						this.minutes -= 1;
-					}
-				} else {
-					if ((this.minutes == 19 || this.minutes == 14 || this.minutes == 9 || this.minutes == 4)
-							&& this.seconds == 59) {
-						try {
-							GameOfTaupes.this.saveManager.saveGameInfos();
-						} catch (IOException | InvalidConfigurationException e) {
-							System.out.println("Save game info failed");
-						}
-
-						try {
-							GameOfTaupes.this.saveManager.savePlayersInfos();
-						} catch (IOException | InvalidConfigurationException e) {
-							System.out.println("Save players info failed");
-						}
-
-						// The world to copy
-						World source = Bukkit.getWorld("world");
-						File sourceFolder = source.getWorldFolder();
-
-						// The world to overwrite when copying
-						File savePath = new File(GameOfTaupes.this.getDataFolder(), "world-save");
-
-						try {
-							GameOfTaupes.this.saveManager.copyMapFolder(sourceFolder, savePath);
-						} catch (IOException e) {
-							System.out.println("Save map failed");
-						}
-					}
-
-					this.seconds -= 1;
-				}
-
-				// WRITING SCOREBOARD
-				// ------------------
-				writeScoreboard(this.minutes, this.seconds);
-			}
-		}.runTaskTimer(this, 0L, 20L);
 	}
 
 	// PLAYER INGAME COMMANDS
@@ -1283,16 +803,6 @@ public class GameOfTaupes extends JavaPlugin {
 				return true;
 			}
 
-			// ADMIN LOAD
-			// ----------
-			if (cmd.getName().equalsIgnoreCase("gotload") && player.isOp()) {
-				try {
-					loadGame();
-				} catch (Exception e) {
-				}
-				return true;
-			}
-
 			// DEAD PLAYER RETURN TO LOBBY
 			// ---------------------------
 			if (cmd.getName().equalsIgnoreCase("gotlobby") && this.playersSpec.contains(player.getUniqueId())
@@ -1387,6 +897,53 @@ public class GameOfTaupes extends JavaPlugin {
 		}
 
 	}
+	
+	public void SetScoreboardSteps()
+	{
+		eventStrings.put(0, "PvP : ");
+		eventStrings.put(1, "Taupes : ");
+		eventStrings.put(2, "Supertaupe : ");
+		eventStrings.put(3, "World Border : ");
+		eventStrings.put(4, "Reveal : ");
+		eventStrings.put(5, "Super Reveal : ");
+		eventStrings.put(6, "Final Shrink : ");
+
+		eventTimers.put(0, getConfig().getInt("options.pvptime"));
+		eventTimers.put(1, getConfig().getInt("options.settaupesafter"));
+		eventTimers.put(2, getConfig().getInt("options.setsupertaupesafter"));
+		eventTimers.put(3, getConfig().getInt("worldborder.retractafter"));
+		eventTimers.put(4, getConfig().getInt("options.forcereveal"));
+		eventTimers.put(5, getConfig().getInt("options.superreveal"));
+		eventTimers.put(6, getConfig().getInt("worldborder.finalretract"));
+
+		sortedByTimer = new ArrayList<Integer>(SortByValue(eventTimers).keySet());
+		
+		eventIndex = 0;
+	}
+
+	public static HashMap<Integer, Integer> SortByValue(HashMap<Integer, Integer> map) 
+	{
+		return map.entrySet()
+				.stream()
+				.sorted((Map.Entry.<Integer, Integer>comparingByValue().reversed()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+	}
+	
+	public void UpdateScoreboardStep()
+	{
+		GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
+		
+		if(++GameOfTaupes.this.eventIndex >= GameOfTaupes.this.sortedByTimer.size())
+			return;
+
+		GameOfTaupes.this.objMinute = GameOfTaupes.this.objFormatter.format(
+				GameOfTaupes.this.eventTimers.get(GameOfTaupes.this.sortedByTimer.get(eventIndex))
+				- GameOfTaupes.this.eventTimers.get(GameOfTaupes.this.sortedByTimer.get(eventIndex - 1)) - 1);
+		GameOfTaupes.this.objSecond = "59";
+		GameOfTaupes.this.objTxt = GameOfTaupes.this.eventStrings.get(GameOfTaupes.this.sortedByTimer.get(eventIndex));
+		GameOfTaupes.this.hasChangedGS = true;
+		GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":" + GameOfTaupes.this.objSecond;
+	}
 
 	/*
 	 * public void setDuelSpawnLocations() { this.duelSpawn1 = new
@@ -1402,7 +959,8 @@ public class GameOfTaupes extends JavaPlugin {
 	 * }
 	 */
 
-	public void initScoreboard(int gs) {
+	public void initScoreboard() 
+	{
 		this.s.getObjective(this.obj.getDisplayName()).getScore(ChatColor.WHITE + "Episode " + this.episode)
 				.setScore(0);
 
@@ -1413,53 +971,13 @@ public class GameOfTaupes extends JavaPlugin {
 		this.s.getObjective(this.obj.getDisplayName())
 				.getScore(ChatColor.WHITE + "Border : " + tmpBorder + " x " + tmpBorder).setScore(-3);
 
-		NumberFormat objFormatter = new DecimalFormat("00");
-
-		switch (gs) {
-		case 2:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("options.pvptime") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "PvP : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 0:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("options.settaupesafter") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "Taupes : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 1:
-			this.objMinute = objFormatter
-					.format(this.getConfig().getInt("options.setsupertaupesafter") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "Supertaupes : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 3:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("worldborder.retractafter") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "World border : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 4:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("options.forcereveal") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "Taupes reveal : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 5:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("options.superreveal") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "Supertaupes reveal : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		case 6:
-			this.objMinute = objFormatter.format(this.getConfig().getInt("worldborder.finalretract") - this.minuteTot);
-			this.objSecond = "00";
-			this.objTxt = "Final shrink : ";
-			this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
-			break;
-		}
+		this.s.getObjective(this.obj.getDisplayName())
+		.getScore(ChatColor.WHITE 
+			+ eventStrings.get(sortedByTimer.get(eventIndex)) 
+			+ this.objFormatter.format(eventTimers.get(sortedByTimer.get(eventIndex)))
+			+ ":" 
+			+ this.objFormatter.format(0))
+		.setScore(-4);
 	}
 
 	public void clearPlayers() {
@@ -1521,7 +1039,7 @@ public class GameOfTaupes extends JavaPlugin {
 			ItemStack item=new ItemStack(Material.CHORUS_FRUIT,1);
 			ItemMeta itemM=item.getItemMeta();
 			itemM.setDisplayName(ChatColor.YELLOW+"Corde sortie");
-			itemM.setLore(Arrays.asList("N'utiliser qu'en cas d'urgence","Permet de se téléporter à la surface","Effets secondaires : Perte de vie, nausées"));		
+			itemM.setLore(Arrays.asList("N'utiliser qu'en cas d'urgence","Permet de se tï¿½lï¿½porter ï¿½ la surface","Effets secondaires : Perte de vie, nausï¿½es"));		
 			item.setItemMeta(itemM);
 
 			
@@ -1967,10 +1485,10 @@ public class GameOfTaupes extends JavaPlugin {
 		}
 	}
 
-	public void writeScoreboard(int minutes, int seconds) {
-		NumberFormat formatter2 = new DecimalFormat("00");
-		String minute2 = ((NumberFormat) formatter2).format(minutes);
-		String second2 = ((NumberFormat) formatter2).format(seconds);
+	public void writeScoreboard(int minutes, int seconds) 
+	{
+		String minute2 = GameOfTaupes.this.objFormatter.format(minutes);
+		String second2 = GameOfTaupes.this.objFormatter.format(seconds);
 
 		GameOfTaupes.this.s.getObjective(GameOfTaupes.this.obj.getDisplayName())
 				.getScore(ChatColor.WHITE + "Episode " + GameOfTaupes.this.episode).setScore(0);
@@ -1983,21 +1501,28 @@ public class GameOfTaupes extends JavaPlugin {
 
 		GameOfTaupes.this.tmpPlayers = this.playersAlive.size();
 
-		if (GameOfTaupes.this.gameState < 7) {
-			if (!GameOfTaupes.this.hasChangedGS) {
+		if (GameOfTaupes.this.eventIndex < GameOfTaupes.this.sortedByTimer.size()) 
+		{
+			if (!GameOfTaupes.this.hasChangedGS) 
+			{
 				int min = Integer.parseInt(GameOfTaupes.this.objMinute);
 				int sec = Integer.parseInt(GameOfTaupes.this.objSecond);
 
-				if (sec == 0) {
+				if (sec == 0) 
+				{
 					GameOfTaupes.this.objSecond = "59";
-					GameOfTaupes.this.objMinute = formatter2.format(min - 1);
-				} else {
-					GameOfTaupes.this.objSecond = formatter2.format(sec - 1);
+					GameOfTaupes.this.objMinute = GameOfTaupes.this.objFormatter.format(min - 1);
+				} 
+				else 
+				{
+					GameOfTaupes.this.objSecond = GameOfTaupes.this.objFormatter.format(sec - 1);
 				}
 
 				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":"
 						+ GameOfTaupes.this.objSecond;
-			} else {
+			} 
+			else 
+			{
 				GameOfTaupes.this.hasChangedGS = false;
 			}
 
@@ -2149,7 +1674,7 @@ public class GameOfTaupes extends JavaPlugin {
 			kit.setAmount(1);
 			kit.setType(Material.FLINT_AND_STEEL);
 			player.getWorld().dropItemNaturally(loc, kit);
-			player.sendMessage(ChatColor.RED+"Vous recevez le kit terroriste ! Ca va péter !");
+			player.sendMessage(ChatColor.RED+"Vous recevez le kit terroriste ! Ca va pï¿½ter !");
 			break;
 		case (1):
 			kit.setAmount(5);
@@ -2222,7 +1747,7 @@ public class GameOfTaupes extends JavaPlugin {
 			kit.addEnchantment(Enchantment.DURABILITY, 3);
 			kit.addEnchantment(Enchantment.LOOT_BONUS_BLOCKS, 3);
 			player.getWorld().dropItemNaturally(loc, kit);
-			player.sendMessage(ChatColor.RED+"Vous recevez le kit taupe-taupe ! Creusez plus vite que la lumière!");
+			player.sendMessage(ChatColor.RED+"Vous recevez le kit taupe-taupe ! Creusez plus vite que la lumiï¿½re!");
 			break;
 		case (5):
 			kit.setAmount(1);
@@ -2240,14 +1765,14 @@ public class GameOfTaupes extends JavaPlugin {
 			kit.addEnchantment(Enchantment.PROTECTION_FALL, 4);
 			kit.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 2);
 			player.getWorld().dropItemNaturally(loc, kit);
-			player.sendMessage(ChatColor.RED+"Vous recevez le kit teleport ! Là, vous me voyez. Là vous me voyez plus.");
+			player.sendMessage(ChatColor.RED+"Vous recevez le kit teleport ! Lï¿½, vous me voyez. Lï¿½ vous me voyez plus.");
 			break;
 		case(7):
 			kit.setAmount(1);
 			kit.setType(Material.DIAMOND_SWORD);
 			kit.addEnchantment(Enchantment.DAMAGE_ALL, 3);
 			player.getWorld().dropItemNaturally(loc, kit);
-			player.sendMessage(ChatColor.RED+"Vous recevez le kit bourreau ! Ca va couper chérie !");
+			player.sendMessage(ChatColor.RED+"Vous recevez le kit bourreau ! Ca va couper chï¿½rie !");
 			break;
 		default:
 			player.getWorld().dropItemNaturally(loc, kit);
@@ -2335,23 +1860,23 @@ public class GameOfTaupes extends JavaPlugin {
 		
 		if(this.playersWithJob.contains(player.getUniqueId())){
 			
-			player.sendMessage(ChatColor.DARK_RED+"Vous avez déjà un métier !");
+			player.sendMessage(ChatColor.DARK_RED+"Vous avez dï¿½jï¿½ un mï¿½tier !");
 			
 			return;
 			
 		}else if (this.pvp) {
 			
-			player.sendMessage(ChatColor.DARK_RED+"Trop tard pour choisir un métier");
+			player.sendMessage(ChatColor.DARK_RED+"Trop tard pour choisir un mï¿½tier");
 					
 			return;
 			
 		} else if(!GameOfTaupes.this.getConfig().getBoolean("options.job."+job)) {
 			
-			player.sendMessage(ChatColor.DARK_RED+"Métier désactivé");
+			player.sendMessage(ChatColor.DARK_RED+"Mï¿½tier dï¿½sactivï¿½");
 			
 		}else{
 			
-			player.sendMessage(ChatColor.GREEN+"Vous avez choisi le métier de "+ job);
+			player.sendMessage(ChatColor.GREEN+"Vous avez choisi le mï¿½tier de "+ job);
 			this.playersWithJob.add(player.getUniqueId());
 			
 			Location ploc = player.getLocation();
