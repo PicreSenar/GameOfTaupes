@@ -259,14 +259,18 @@ public class GameOfTaupes extends JavaPlugin {
 		craft4.addIngredient(Material.GUNPOWDER);
 		Bukkit.addRecipe(craft4);
 		
-		ItemStack driedflesh=new ItemStack(Material.RABBIT_HIDE);
-		ItemMeta driedfleshM=driedflesh.getItemMeta();
+		ItemStack driedflesh = new ItemStack(Material.RABBIT_HIDE);
+		ItemMeta driedfleshM = driedflesh.getItemMeta();
 		driedfleshM.setDisplayName("Dried Flesh");
 		driedflesh.setItemMeta(driedfleshM);
         FurnaceRecipe LeatherR = new FurnaceRecipe(driedflesh,Material.ROTTEN_FLESH)	;
         Bukkit.addRecipe(LeatherR);
-		
-		
+
+		ShapedRecipe craft5 = new ShapedRecipe(new ItemStack(Material.PAPER));
+		craft5.shape(new String[] { "***" });
+		craft5.setIngredient('*', Material.BONE_MEAL);
+		Bukkit.addRecipe(craft5);
+				
 
 		this.rose = this.s.registerNewTeam(teamf.getString("rose.name"));
 		this.rose.setPrefix(ChatColor.LIGHT_PURPLE.toString());
