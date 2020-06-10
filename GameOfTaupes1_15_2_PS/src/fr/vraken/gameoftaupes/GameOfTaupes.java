@@ -184,9 +184,9 @@ public class GameOfTaupes extends JavaPlugin {
 	ArrayList<String> teamReveal = new ArrayList<String>();
 
 	public void onEnable() {
-		System.out.println("+-------------VrakenGameOfTaupes--------------+");
-		System.out.println("|           Plugin cree par Vraken            |");
-		System.out.println("+---------------------------------------------+");
+		System.out.println("+-------------VrakenGameOfTaupesV2--------------+");
+		System.out.println("|            Plugin cree par Vraken             |");
+		System.out.println("+-----------------------------------------------+");
 		try {
 			filesManager = new FilesManager(this);
 		} catch (IOException | InvalidConfigurationException e) {
@@ -260,7 +260,7 @@ public class GameOfTaupes extends JavaPlugin {
 		Bukkit.addRecipe(craft4);
 		
 		ItemStack driedflesh = new ItemStack(Material.RABBIT_HIDE);
-		ItemMeta driedfleshM = driedflesh.getItemMeta();
+		ItemMeta driedfleshM =driedflesh.getItemMeta();
 		driedfleshM.setDisplayName("Dried Flesh");
 		driedflesh.setItemMeta(driedfleshM);
         FurnaceRecipe LeatherR = new FurnaceRecipe(driedflesh,Material.ROTTEN_FLESH)	;
@@ -919,23 +919,20 @@ public class GameOfTaupes extends JavaPlugin {
 		eventTimers.put(4, getConfig().getInt("options.forcereveal"));
 		eventTimers.put(5, getConfig().getInt("options.superreveal"));
 		eventTimers.put(6, getConfig().getInt("worldborder.finalretract"));
-
-		sortedByTimer = new ArrayList<Integer>(SortByValue(eventTimers).keySet());
+		
+		sortedByTimer = new ArrayList<Integer>();
+		eventTimers.entrySet()
+			.stream()
+			.sorted((Map.Entry.comparingByValue()))
+			.forEachOrdered(x -> sortedByTimer.add(x.getKey()));
 		
 		eventIndex = 0;
-	}
-
-	public static HashMap<Integer, Integer> SortByValue(HashMap<Integer, Integer> map) 
-	{
-		return map.entrySet()
-				.stream()
-				.sorted((Map.Entry.<Integer, Integer>comparingByValue().reversed()))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 	}
 	
 	public void UpdateScoreboardStep()
 	{
-		GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
+		GameOfTaupes.this.hasChangedGS = true;
+		/*GameOfTaupes.this.s.resetScores(ChatColor.WHITE + GameOfTaupes.this.countdownObj);
 		
 		if(++GameOfTaupes.this.eventIndex >= GameOfTaupes.this.sortedByTimer.size())
 			return;
@@ -946,7 +943,7 @@ public class GameOfTaupes extends JavaPlugin {
 		GameOfTaupes.this.objSecond = "59";
 		GameOfTaupes.this.objTxt = GameOfTaupes.this.eventStrings.get(GameOfTaupes.this.sortedByTimer.get(eventIndex));
 		GameOfTaupes.this.hasChangedGS = true;
-		GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":" + GameOfTaupes.this.objSecond;
+		GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":" + GameOfTaupes.this.objSecond;*/
 	}
 
 	/*
@@ -975,13 +972,15 @@ public class GameOfTaupes extends JavaPlugin {
 		this.s.getObjective(this.obj.getDisplayName())
 				.getScore(ChatColor.WHITE + "Border : " + tmpBorder + " x " + tmpBorder).setScore(-3);
 
+		this.objTxt = eventStrings.get(sortedByTimer.get(eventIndex)) ;
+		this.objMinute = this.objFormatter.format(eventTimers.get(sortedByTimer.get(eventIndex)));
+		this.objSecond = this.objFormatter.format(0);
+		
+		this.countdownObj = this.objTxt + this.objMinute + ":" + this.objSecond;
+		
 		this.s.getObjective(this.obj.getDisplayName())
-		.getScore(ChatColor.WHITE 
-			+ eventStrings.get(sortedByTimer.get(eventIndex)) 
-			+ this.objFormatter.format(eventTimers.get(sortedByTimer.get(eventIndex)))
-			+ ":" 
-			+ this.objFormatter.format(0))
-		.setScore(-4);
+			.getScore(ChatColor.WHITE + this.countdownObj)
+			.setScore(-4);
 	}
 
 	public void clearPlayers() {
@@ -1526,7 +1525,18 @@ public class GameOfTaupes extends JavaPlugin {
 						+ GameOfTaupes.this.objSecond;
 			} 
 			else 
-			{
+			{				
+				if(++GameOfTaupes.this.eventIndex >= GameOfTaupes.this.sortedByTimer.size())
+					return;
+
+				GameOfTaupes.this.objMinute = GameOfTaupes.this.objFormatter.format(
+						GameOfTaupes.this.eventTimers.get(GameOfTaupes.this.sortedByTimer.get(eventIndex))
+						- GameOfTaupes.this.eventTimers.get(GameOfTaupes.this.sortedByTimer.get(eventIndex - 1)) - 1);
+				GameOfTaupes.this.objSecond = "59";
+				GameOfTaupes.this.objTxt = GameOfTaupes.this.eventStrings.get(GameOfTaupes.this.sortedByTimer.get(eventIndex));
+				GameOfTaupes.this.hasChangedGS = true;
+				GameOfTaupes.this.countdownObj = GameOfTaupes.this.objTxt + GameOfTaupes.this.objMinute + ":" + GameOfTaupes.this.objSecond;
+				
 				GameOfTaupes.this.hasChangedGS = false;
 			}
 
