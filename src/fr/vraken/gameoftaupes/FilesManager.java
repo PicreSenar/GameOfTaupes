@@ -172,9 +172,9 @@ public class FilesManager
 
 		plugin.getConfig().addDefault("worldborder.size", Integer.valueOf(1500));
 		plugin.getConfig().addDefault("worldborder.finalsize", Integer.valueOf(100));
-		plugin.getConfig().addDefault("worldborder.retractafter", Integer.valueOf(100));
+		plugin.getConfig().addDefault("worldborder.retractafter", Integer.valueOf(30));
 		plugin.getConfig().addDefault("worldborder.episodestorestract", Integer.valueOf(1));
-		plugin.getConfig().addDefault("worldborder.finalretract", Integer.valueOf(150));
+		plugin.getConfig().addDefault("worldborder.finalretract", Integer.valueOf(70));
 		plugin.getConfig().addDefault("potions.allowglowstone", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("lobby.world", "lobby");
 		plugin.getConfig().addDefault("lobby.X", Integer.valueOf(0));
@@ -203,15 +203,24 @@ public class FilesManager
 		plugin.getConfig().addDefault("options.pvptime", Integer.valueOf(20));
 		plugin.getConfig().addDefault("options.cooldown", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.playersperteam", Integer.valueOf(4));
-		plugin.getConfig().addDefault("options.settaupesafter", Integer.valueOf(30));
-		plugin.getConfig().addDefault("options.forcereveal", Integer.valueOf(70));
+		plugin.getConfig().addDefault("options.settaupesafter", Integer.valueOf(10));
+		plugin.getConfig().addDefault("options.forcereveal", Integer.valueOf(50));
 		plugin.getConfig().addDefault("options.supertaupe", Boolean.valueOf(false));
-		plugin.getConfig().addDefault("options.setsupertaupesafter", Integer.valueOf(50));
-		plugin.getConfig().addDefault("options.superreveal", Integer.valueOf(90));
+		plugin.getConfig().addDefault("options.setsupertaupesafter", Integer.valueOf(11));
+		plugin.getConfig().addDefault("options.superreveal", Integer.valueOf(60));
 		plugin.getConfig().addDefault("options.autosmelting", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.fastcooking", Boolean.valueOf(false));
+		plugin.getConfig().addDefault("options.cookingmultiplier", Integer.valueOf(1));
 		plugin.getConfig().addDefault("options.haste", Boolean.valueOf(false));
+		plugin.getConfig().addDefault("options.saturation", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.meetupteamtp", Boolean.valueOf(false));
+		plugin.getConfig().addDefault("options.revealing", Boolean.valueOf(false));
+		
+		plugin.getConfig().addDefault("options.job.mineur", Boolean.valueOf(false));
+		plugin.getConfig().addDefault("options.job.bucheron", Boolean.valueOf(false));
+		plugin.getConfig().addDefault("options.job.chasseur", Boolean.valueOf(false));
+		
+		
 
 		plugin.getConfig().addDefault("duelspawn1.X", Integer.valueOf(0));
 		plugin.getConfig().addDefault("duelspawn1.Y", Integer.valueOf(250));
@@ -219,6 +228,8 @@ public class FilesManager
 		plugin.getConfig().addDefault("duelspawn2.X", Integer.valueOf(0));
 		plugin.getConfig().addDefault("duelspawn2.Y", Integer.valueOf(250));
 		plugin.getConfig().addDefault("duelspawn2.Z", Integer.valueOf(0));
+		
+		plugin.getConfig().addDefault("Disallowed enchants", String.valueOf(""));
 
 		plugin.getConfig().options().copyDefaults(true);
 		plugin.saveConfig();

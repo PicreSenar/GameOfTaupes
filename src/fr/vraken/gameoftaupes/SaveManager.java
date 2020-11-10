@@ -10,12 +10,12 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.UUID;
 
+//import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.apache.commons.io.FileUtils;
 
 public class SaveManager 
 {
@@ -306,7 +306,7 @@ public class SaveManager
 	    	}
 	    	else
 	    	{
-	    		FileUtils.cleanDirectory(dest);
+//	    		FileUtils.cleanDirectory(dest);
 	    	}
 
 	    	//list all the directory contents

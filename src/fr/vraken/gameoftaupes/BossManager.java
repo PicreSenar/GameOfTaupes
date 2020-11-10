@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Creeper;
@@ -18,7 +19,6 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.ChatColor;
 
 public class BossManager 
 {
@@ -131,11 +131,11 @@ public class BossManager
 		z.setBaby(false);
 		z.setRemoveWhenFarAway(false);
 		
-		livingzombie.getEquipment().setBoots(new ItemStack(Material.GOLD_BOOTS, 1));
-		livingzombie.getEquipment().setChestplate(new ItemStack(Material.GOLD_CHESTPLATE, 1));
-		livingzombie.getEquipment().setHelmet(new ItemStack(Material.GOLD_HELMET, 1));
-		livingzombie.getEquipment().setLeggings(new ItemStack(Material.GOLD_LEGGINGS, 1));
-		livingzombie.getEquipment().setItemInHand(new ItemStack(Material.GOLD_AXE, 1));
+		livingzombie.getEquipment().setBoots(new ItemStack(Material.GOLDEN_BOOTS, 1));
+		livingzombie.getEquipment().setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE, 1));
+		livingzombie.getEquipment().setHelmet(new ItemStack(Material.GOLDEN_HELMET, 1));
+		livingzombie.getEquipment().setLeggings(new ItemStack(Material.GOLDEN_LEGGINGS, 1));
+		livingzombie.getEquipment().setItemInHand(new ItemStack(Material.GOLDEN_AXE, 1));
 		
 		livingzombie.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100000, 1));
 		
@@ -151,6 +151,7 @@ public class BossManager
 
 		LivingEntity livingskeleton = (LivingEntity)sskeleton;
 		livingskeleton.setHealth(20.0f);
+		@SuppressWarnings("deprecation")
 		Skeleton s = (Skeleton) sskeleton;
 		s.setSkeletonType(SkeletonType.NORMAL);
 		s.setRemoveWhenFarAway(false);

@@ -2,7 +2,10 @@ package fr.vraken.gameoftaupes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -16,26 +19,32 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Witch;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -45,20 +54,26 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.BrewerInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.Banner;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.block.Skull;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Team;
+
+import com.mysql.fabric.Server;
+
+
 
 
 public class EventsClass implements Listener
 {
 	static GameOfTaupes plugin;
 	public static boolean pvp = false;
-	ItemStack playerSkull = new ItemStack(Material.SKULL_ITEM, 1, (short)3);
+	ItemStack playerSkull = new ItemStack(Material.LEGACY_SKULL);
 
 	public EventsClass(GameOfTaupes gameoftaupes)
 	{
@@ -67,11 +82,15 @@ public class EventsClass implements Listener
 
 	public static void addItem(Inventory inv, ChatColor ccolor, DyeColor color, String Name, int slot)
 	{
-		ItemStack team = new ItemStack(Material.BANNER);
+		ItemStack team = new ItemStack(Material.LEGACY_BANNER);
 		BannerMeta meta = (BannerMeta)team.getItemMeta();
 		meta.setDisplayName(ccolor + Name);
+
 		if (color.equals(DyeColor.PINK))
 		{
+			team = new ItemStack(Material.PINK_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("rose.name")).getPlayers()) {
 				lore.add(ChatColor.LIGHT_PURPLE + "- " + pl.getName());
@@ -80,6 +99,9 @@ public class EventsClass implements Listener
 		}
 		else if (color.equals(DyeColor.YELLOW))
 		{
+			team = new ItemStack(Material.YELLOW_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("jaune.name")).getPlayers()) {
 				lore.add(ChatColor.YELLOW + "- " + pl.getName());
@@ -88,6 +110,9 @@ public class EventsClass implements Listener
 		}
 		else if (color.equals(DyeColor.PURPLE))
 		{
+			team = new ItemStack(Material.PURPLE_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("violette.name")).getPlayers()) {
 				lore.add(ChatColor.DARK_PURPLE + "- " + pl.getName());
@@ -96,6 +121,9 @@ public class EventsClass implements Listener
 		}
 		else if (color.equals(DyeColor.CYAN))
 		{
+			team = new ItemStack(Material.CYAN_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("cyan.name")).getPlayers()) {
 				lore.add(ChatColor.AQUA + "- " + pl.getName());
@@ -104,6 +132,9 @@ public class EventsClass implements Listener
 		}
 		else if (color.equals(DyeColor.GREEN))
 		{
+			team = new ItemStack(Material.GREEN_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("verte.name")).getPlayers()) {
 				lore.add(ChatColor.GREEN + "- " + pl.getName());
@@ -112,6 +143,9 @@ public class EventsClass implements Listener
 		}
 		else if (color.equals(DyeColor.GRAY))
 		{
+			team = new ItemStack(Material.GRAY_BANNER);
+			meta = (BannerMeta)team.getItemMeta();
+			meta.setDisplayName(ccolor + Name);
 			List<String> lore = new ArrayList<String>();
 			for (OfflinePlayer pl : plugin.s.getTeam(plugin.teamf.getString("grise.name")).getPlayers()) {
 				lore.add(ChatColor.GRAY + "- " + pl.getName());
@@ -151,7 +185,7 @@ public class EventsClass implements Listener
 	}
 
 	@EventHandler
-	public void ChoiceTeam(InventoryClickEvent e)
+	public void onInventoryClick(InventoryClickEvent e)
 	{
 		if (e.getCurrentItem() == null)
 		{
@@ -159,7 +193,9 @@ public class EventsClass implements Listener
         }
 		
 		Player p = (Player)e.getWhoClicked();
-		if (e.getInventory().getName().equals(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString) && e.getCurrentItem().getType() == Material.BANNER)
+
+		
+		if (e.getView().getTitle().equals(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString))
 		{
 			BannerMeta banner = (BannerMeta)e.getCurrentItem().getItemMeta();
 			
@@ -175,7 +211,7 @@ public class EventsClass implements Listener
 				
 				if (plugin.rose.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.rose.getPrefix() + 
+					p.sendMessage(ChatColor.LIGHT_PURPLE + 
 							"Vous avez rejoint " + plugin.teamf.getString("rose.name"));
 					plugin.rose.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -191,7 +227,7 @@ public class EventsClass implements Listener
 			if (bname.contains(plugin.teamf.getString("cyan.name"))) {
 				if (plugin.cyan.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.cyan.getPrefix() + 
+					p.sendMessage(ChatColor.AQUA + 
 							"Vous avez rejoint " + plugin.teamf.getString("cyan.name"));
 					plugin.cyan.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -207,7 +243,7 @@ public class EventsClass implements Listener
 			if (bname.contains(plugin.teamf.getString("jaune.name"))) {
 				if (plugin.jaune.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.jaune.getPrefix() + 
+					p.sendMessage(ChatColor.YELLOW + 
 							"Vous avez rejoint " + plugin.teamf.getString("jaune.name"));
 					plugin.jaune.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -223,7 +259,7 @@ public class EventsClass implements Listener
 			if (bname.contains(plugin.teamf.getString("violette.name"))) {
 				if (plugin.violette.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.violette.getPrefix() + 
+					p.sendMessage(ChatColor.DARK_PURPLE + 
 							"Vous avez rejoint " + plugin.teamf.getString("violette.name"));
 					plugin.violette.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -239,7 +275,7 @@ public class EventsClass implements Listener
 			if (bname.contains(plugin.teamf.getString("verte.name"))) {
 				if (plugin.verte.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.verte.getPrefix() + 
+					p.sendMessage(ChatColor.GREEN + 
 							"Vous avez rejoint " + plugin.teamf.getString("verte.name"));
 					plugin.verte.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -255,7 +291,7 @@ public class EventsClass implements Listener
 			if (bname.contains(plugin.teamf.getString("grise.name"))) {
 				if (plugin.grise.getPlayers().size() < plugin.getConfig().getInt("options.playersperteam"))
 				{
-					p.sendMessage(plugin.grise.getPrefix() +
+					p.sendMessage(ChatColor.GRAY +
 							"Vous avez rejoint " + plugin.teamf.getString("grise.name"));
 					plugin.grise.addPlayer(p);
 					if(!plugin.playersInTeam.contains(p.getUniqueId()))
@@ -279,6 +315,49 @@ public class EventsClass implements Listener
 			}
 			e.setCancelled(true);
 			openTeamInv(p);
+		}else if (e.getView().getTitle().equals("Repair & Name")&&e.getSlot()==2) {
+			
+			//p.sendMessage(e.getCurrentItem().getEnchantments().toString());
+			
+			Map<Enchantment, Integer> enchants = e.getCurrentItem().getEnchantments();
+			
+			Iterator<Map.Entry<Enchantment, Integer>> iterator = enchants.entrySet().iterator();
+			
+			World gotworld=Bukkit.getWorld(plugin.getConfig().getString("world"));
+			
+			//String disabledenchantements =plugin.getConfig().getString("Disallowed enchants");
+			 //player.sendMessage("disabled enchant : "+disabledenchantements);
+
+			if(p.getWorld()!=gotworld)return;
+			
+		    while (iterator.hasNext()) {
+		    	
+		        Map.Entry<Enchantment, Integer> entry = iterator.next();
+		        
+		        Enchantment enchantment = entry.getKey();
+		        Integer enchantlevel =entry.getValue();
+		        
+		        //p.sendMessage("enchant :"+enchantment+" - level : "+enchantlevel);
+		        
+		        Integer maxlevelenchant = plugin.getConfig().getInt("Disallowed enchants."+enchantment.getName());
+		       // p.sendMessage("levelmax : "+maxlevelenchant);
+		        
+		        if (maxlevelenchant!=0&&enchantlevel>maxlevelenchant) {    		
+
+		    			p.sendMessage("§4"+ enchantment.getName()+" - niveau "+enchantlevel+"§c : Cet enchantement est désactivé (niveau max : "+maxlevelenchant+")");
+		    			e.setCancelled(true);
+		    			break;		
+		        	//iterator.remove();
+		        	
+
+		        }
+		    }
+			
+			
+			
+			
+			
+			
 		}
 	}
 
@@ -330,19 +409,23 @@ public class EventsClass implements Listener
 				else
 				{
 					p.teleport(plugin.meetupLocation);
+					p.getInventory().clear();
+					p.getInventory().setItem(0, new ItemStack(Material.LEGACY_BANNER, 1));
+					ItemMeta meta1 = p.getInventory().getItem(0).getItemMeta();
+					meta1.setDisplayName(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString);
+					p.getInventory().getItem(0).setItemMeta(meta1);
+					
 				}
 			}
 			else
 			{
 				p.teleport(plugin.lobbyLocation);
+				p.getInventory().clear();
 			}
 			
 			p.setGameMode(GameMode.ADVENTURE);
 			
-			p.getInventory().setItem(0, new ItemStack(Material.BANNER, 1));
-			ItemMeta meta1 = p.getInventory().getItem(0).getItemMeta();
-			meta1.setDisplayName(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString);
-			p.getInventory().getItem(0).setItemMeta(meta1);
+
 
 			e.setJoinMessage(ChatColor.BLUE + p.getName() + 
 					ChatColor.YELLOW + " a rejoint la partie  " + 
@@ -412,7 +495,7 @@ public class EventsClass implements Listener
 			}
 			p.setGameMode(GameMode.ADVENTURE);
 			
-			p.getInventory().setItem(0, new ItemStack(Material.BANNER, 1));
+			p.getInventory().setItem(0, new ItemStack(Material.LEGACY_BANNER, 1));
 			ItemMeta meta1 = p.getInventory().getItem(0).getItemMeta();
 			meta1.setDisplayName(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString);
 			p.getInventory().getItem(0).setItemMeta(meta1);
@@ -465,7 +548,7 @@ public class EventsClass implements Listener
 		Action a = e.getAction();
 		if ((a.equals(Action.RIGHT_CLICK_AIR)
 				|| a.equals(Action.RIGHT_CLICK_BLOCK))
-				&& p.getItemInHand().getType() == Material.BANNER
+				&& p.getItemInHand().getType() == Material.BLACK_BANNER
 				&& p.getItemInHand().getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Choisir " + plugin.teamChoiceString))
 		{
 			e.setCancelled(true);      
@@ -474,14 +557,14 @@ public class EventsClass implements Listener
 	}
 	
 	@EventHandler
-	public void PlayerImmunityBeforeTaupes(EntityDamageEvent e)
+	public void PlayerImmunityBeforePvp(EntityDamageEvent e)
 	{
 		if(!plugin.gameStarted || plugin.gameEnd)
 		{
 			return;
 		}
 		
-		if(plugin.taupessetup)
+		if(pvp)
 		{
 			return;
 		}
@@ -524,9 +607,7 @@ public class EventsClass implements Listener
 
 			//alive.remove(player.getUniqueId());  
 			plugin.playersAlive.remove(player.getUniqueId());
-
-			e.getDrops().add(new ItemStack(Material.SKULL_ITEM));
-			e.getDrops().add(new ItemStack(Material.GOLDEN_APPLE));
+		
 
 			Team team = player.getScoreboard().getPlayerTeam(player);
 			team.removePlayer(player);
@@ -555,6 +636,9 @@ public class EventsClass implements Listener
 					plugin.aliveSupertaupes.remove(player.getUniqueId());
 				}
 			}
+			
+			
+			
 
 			new BukkitRunnable()
 			{
@@ -566,12 +650,26 @@ public class EventsClass implements Listener
 					
 					try
 					{
-						Bukkit.getPlayer("Spec").performCommand("dynmap hide " + player.getName());
-						Bukkit.getPlayer("Spec").performCommand("tp " + player.getName() + " 0 500 0");
+					//	Bukkit.getPlayer("Spec").performCommand("dynmap hide " + player.getName());
+					//	Bukkit.getPlayer("Spec").performCommand("tp " + player.getName() + " 0 500 0");
 					}
 					catch(Exception ex) {}
 				}
 			}.runTaskLater(plugin, 60);	
+			
+			
+			ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+			SkullMeta headmeta= (SkullMeta) head.getItemMeta();
+			
+			headmeta.setDisplayName(player.getDisplayName());
+			headmeta.setOwningPlayer(player);
+			
+			head.setItemMeta(headmeta);
+				
+
+			e.getDrops().add(head);
+			e.getDrops().add(new ItemStack(Material.GOLDEN_APPLE));
+			
 		}
 		/*
 		else if(plugin.duelInProgress)
@@ -691,28 +789,86 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void CancelPVPInGame(EntityDamageByEntityEvent e)
 	{		
-		if (	e.getDamager() instanceof Player && 
-				e.getEntity() instanceof Player)
+		if (	(e.getDamager() instanceof Player && 
+				e.getEntity() instanceof Player))
 		{
 			
 		Player damager=	(Player) e.getDamager();
 		Player player = (Player)e.getEntity();
 			
+//			if (!player.getWorld().getName().equalsIgnoreCase(plugin.getConfig().get("world").toString()))return;
+		
 			if (!pvp )		
 			{
 				
-				if(plugin.playersInLobby.contains(player.getUniqueId()))
+				//if(plugin.playersInLobby.contains(player.getUniqueId()))
+				if(player.getWorld().getName().equalsIgnoreCase(plugin.getConfig().get("world").toString()))
 				{
-					return;
+					e.setCancelled(true);
 				}
-				e.setCancelled(true);
+				
 			}
-			else if(damager.getInventory().getItemInMainHand().getType()==Material.GOLD_SWORD) {
+			else if(damager.getInventory().getItemInMainHand().getType()==Material.GOLDEN_SWORD) {
 				
 				damager.sendMessage(ChatColor.DARK_RED+"Cette épée ne peut pas être utilisée en pvp");
 				player.setFireTicks(0);
 				e.setCancelled(true);
 			}
+			
+			else if(damager.getInventory().getItemInMainHand().getEnchantments().containsKey(Enchantment.FIRE_ASPECT))
+			{
+				damager.getInventory().getItemInMainHand().removeEnchantment(Enchantment.FIRE_ASPECT);
+				damager.sendMessage(ChatColor.DARK_RED+"Le fire aspect est désactivé");
+				player.setFireTicks(0);
+				
+			}
+		
+		}
+		
+		if (e.getEntity() instanceof Player){
+			
+			if (e.getDamager() instanceof Arrow) {
+				Arrow arrow=(Arrow)e.getDamager();
+				if (!(arrow.getShooter() instanceof Player))return;
+			}else if (!(e.getDamager() instanceof Player)) {
+				return;
+			}
+		
+			Player player = (Player)e.getEntity();
+			
+			if(plugin.getConfig().getInt("options.shieldcooldown")>0&&player.getInventory().getItemInOffHand().getType()==Material.SHIELD) {
+				
+				
+	//			System.out.println("Damage : "+ (e.getDamage()+ e.getDamage(DamageModifier.BLOCKING)));
+	
+				
+				if(e.getDamage()+ e.getDamage(DamageModifier.BLOCKING)==0.0) {
+					
+					
+					PlayerInventory Inventory=player.getInventory();
+					ItemStack shield =player.getInventory().getItemInOffHand();
+									
+					player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));;
+	//				player.updateInventory();
+	
+					
+					Long cooldown=plugin.getConfig().getInt("options.shieldcooldown")*20L;
+					
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+					    @Override
+					    public void run() {
+							player.getInventory().setItemInOffHand(shield);	
+					    }
+					}, cooldown);
+					
+					
+	
+	//				player.setFoodLevel(player.getFoodLevel()-1);
+					
+				}
+
+			}					
+			
 		}
 	}
 	
@@ -720,116 +876,47 @@ public class EventsClass implements Listener
 	public void OnPlayerOpenTreasureChest(PlayerInteractEvent e)
 	{
 		
+		World gotworld = Bukkit.getWorld(plugin.getConfig().get("world").toString());
 		
-		if(e.getPlayer().getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+	
+		
 		
 		if(e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getClickedBlock().getType() == Material.TRAPPED_CHEST)
 		{
-			if(e.getClickedBlock().getLocation().distance(plugin.chestLocation) <= 10.0f)
-			{
-				try
-				{
-					Bukkit.getPlayer("Spec").performCommand("dmarker delete chest");
-				}
-				catch(Exception ex) {}
+			if(e.getClickedBlock()==null||e.getClickedBlock().getWorld()!=gotworld) return;
+			
+			if(e.getPlayer().getGameMode()==GameMode.SPECTATOR)return;
+//				try
+//				{
+//					Bukkit.getPlayer("Spec").performCommand("dmarker delete chest");
+//				}
+//				catch(Exception ex) {}
+				
 				
 				
 				if(plugin.getConfig().getBoolean("chest.random"))
 				{
-					Block redstoneBlock = e.getClickedBlock();
-					Location redstoneLocation = redstoneBlock.getLocation();
-					int x = (int)redstoneBlock.getLocation().getX();	
-					int y = 120;
-					int z = (int)redstoneBlock.getLocation().getZ();
+					Block chestBlock = e.getClickedBlock();
+					Location chestLocation = chestBlock.getLocation();
+					int x = (int)chestLocation.getX();	
+					int y = (int)chestLocation.getY();
+					int z = (int)chestLocation.getZ();
 
-					redstoneBlock.setType(Material.AIR);
-					redstoneLocation.setY(y);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
+					//chestBlock.setType(Material.AIR);
 					
-					redstoneLocation.setY(y + 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x + 1);
-					redstoneLocation.setY(y + 1);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x - 1);
-					redstoneLocation.setY(y + 1);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 1);
-					redstoneLocation.setZ(z + 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 1);
-					redstoneLocation.setZ(z - 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x + 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x - 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z + 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z - 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x + 2);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x - 2);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z + 2);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z - 2);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x + 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z + 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x + 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z - 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x - 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z + 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setX(x - 1);
-					redstoneLocation.setY(y + 2);
-					redstoneLocation.setZ(z - 1);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
+					//DELETE FIRE
+					Location fireLocation =new Location(gotworld,x,y-1,z);
+					if (gotworld.getBlockAt(fireLocation).getType()==Material.CAMPFIRE) gotworld.getBlockAt(fireLocation).setType(Material.OAK_PLANKS);
 					
-					redstoneLocation.setX(x);
-					redstoneLocation.setY(y + 3);
-					redstoneLocation.setZ(z);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setY(y + 4);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setY(y + 5);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
-					redstoneLocation.setY(y + 6);
-					Bukkit.getWorld(plugin.getConfig().get("world").toString()).getBlockAt(redstoneLocation).setType(Material.AIR);
+					//DELETE HAY BALE
+					Location hayLocation=new Location(gotworld,x,y-2,z);
+					if (gotworld.getBlockAt(hayLocation).getType()==Material.HAY_BLOCK) gotworld.getBlockAt(hayLocation).setType(Material.AIR);
+					
 				}
-			}
+		}else if((e.getAction()==Action.RIGHT_CLICK_AIR||e.getAction()==Action.RIGHT_CLICK_BLOCK)&&e.getPlayer().getInventory().getItemInOffHand().getType()==Material.SHIELD) {
+			
+			//System.out.print("Pouet Pouet Pouet");
+			
 		}
 	}
 	
@@ -862,46 +949,76 @@ public class EventsClass implements Listener
 	@EventHandler
     public void FurnaceBurnEvent(FurnaceBurnEvent e) 
 	{
-		if(!plugin.getConfig().getBoolean("options.fastcooking"))
+		if(!plugin.getConfig().getBoolean("options.fastcooking")||e.getBlock().getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world")))
 		{
 			return;
 		}
 		
-        Furnace furnace = (Furnace) e.getBlock().getState();
-        furnace.setCookTime((short)100);
+		Furnace furnace = (Furnace) e.getBlock().getState();
+		Integer cookingmult =plugin.getConfig().getInt("options.cookingmultiplier");
+		
+		//System.out.println("Cooking : "+ furnace.getCookTimeTotal()/cookingmult);
+		furnace.setCookTimeTotal(furnace.getCookTimeTotal()/cookingmult);
+		
+		furnace.update();
+		
+		
     }
  
     @EventHandler
     public void FurnaceSmeltEvent(FurnaceSmeltEvent e) 
     {
-		if(!plugin.getConfig().getBoolean("options.fastcooking"))
+    	if(!plugin.getConfig().getBoolean("options.fastcooking")||e.getBlock().getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world")))
 		{
 			return;
 		}
 		
-        Furnace furnace = (Furnace) e.getBlock().getState();
-        furnace.setCookTime((short)100);
+		//Furnace furnace = (Furnace) e.getBlock().getState();
+		Integer cookingmult =plugin.getConfig().getInt("options.cookingmultiplier");
+		
+		new BukkitRunnable() {
+		public void run() {
+            
+			Furnace furnace = (Furnace) e.getBlock().getState();
+			
+            if ((furnace.getCookTimeTotal() > (short)(furnace.getCookTimeTotal()/cookingmult))) {
+               
+				
+            //	System.out.println("Cookingnext : "+ furnace.getCookTimeTotal()/cookingmult);
+            	furnace.setCookTimeTotal((short)(furnace.getCookTimeTotal()/cookingmult));
+            	furnace.update();
+            	cancel();
+            	
+               
+           } else {
+                cancel();
+            }
+		}
+	}.runTaskTimer(plugin, 2L, 1L);
     }
  
     @EventHandler
-    public void OnInventoryClick(BlockPlaceEvent e) 
+    public void onBlockPlace(BlockPlaceEvent e) 
     {
 		
     	
     	
-    	if(!plugin.getConfig().getBoolean("options.fastcooking"))
+    	if(plugin.getConfig().getBoolean("options.fastcooking"))
 		{
-			return;
-		}
-		
-    	Block block = e.getBlock();
-    	if (block.getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+				
+	    	Block block = e.getBlock();
+	    	if (block.getWorld()!=Bukkit.getWorld(plugin.getConfig().getString("world"))) return;
+	    	
+	    	if(block.getType() == Material.FURNACE || block.getType() == Material.LEGACY_BURNING_FURNACE)
+	    	{
+	    		Furnace furnace = (Furnace) block.getState();
+	            furnace.setCookTime((short)100);
+	    	}
     	
-    	if(block.getType() == Material.FURNACE || block.getType() == Material.BURNING_FURNACE)
-    	{
-    		Furnace furnace = (Furnace) block.getState();
-            furnace.setCookTime((short)100);
-    	}
+		}
+    	
+    	
+    	
     }
     
     
@@ -913,7 +1030,7 @@ public class EventsClass implements Listener
     
     World world =e.getBlock().getWorld();
     Location blockpos=e.getBlock().getLocation();
-    Integer dropchance = 50;
+    Integer dropchance = 100;
     Random random = new Random();
     ItemStack drop = new ItemStack(Material.APPLE,1);
     
@@ -923,7 +1040,7 @@ public class EventsClass implements Listener
     	
     	world.dropItem(blockpos, drop);
     	ExperienceOrb orb = world.spawn(blockpos, ExperienceOrb.class);
-    	orb.setExperience(3);
+    	orb.setExperience(10);
     	
     }
     
@@ -961,10 +1078,139 @@ public class EventsClass implements Listener
  
             player.teleport(destinationTP);
             
-            if (player.getHealth()>2) player.setHealth(2);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 600, 2));
+            if (player.getHealth()>16) player.setHealth(16);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 300, 1));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 300, 10));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 300, 10));
         }
         
     }
+    
+    
+    @EventHandler
+	public void onEnchant(EnchantItemEvent event) {
+		
+		Player player = event.getEnchanter();
+		
+		Map<Enchantment, Integer> enchants = event.getEnchantsToAdd();
+		
+		Iterator<Map.Entry<Enchantment, Integer>> iterator = enchants.entrySet().iterator();
+		
+		World gotworld=Bukkit.getWorld(plugin.getConfig().getString("world"));
+		
+		//String disabledenchantements =plugin.getConfig().getString("Disallowed enchants");
+		 //player.sendMessage("disabled enchant : "+disabledenchantements);
+
+		
+		
+		if(player.getWorld()!=gotworld)return;
+		
+	    while (iterator.hasNext()) {
+	    	
+	        Map.Entry<Enchantment, Integer> entry = iterator.next();
+	        
+	        Enchantment enchantment = entry.getKey();
+	        Integer enchantlevel =entry.getValue();
+	        
+//	        player.sendMessage("enchant :"+enchantment+" - level : "+enchantlevel);
+	        
+	        Integer maxlevelenchant = plugin.getConfig().getInt("Disallowed enchants."+enchantment.getName());
+//	        player.sendMessage("levelmax : "+maxlevelenchant);
+	        
+	        if (maxlevelenchant!=0&&enchantlevel>maxlevelenchant) {    		
+
+	    			player.sendMessage("§4"+ enchantment.getName()+" - niveau "+enchantlevel+"§c : Cet enchantement est désactivé (niveau max : "+maxlevelenchant+")");
+	    			event.setCancelled(true);
+	    			break;		
+	        	//iterator.remove();
+	        	
+
+	        }
+	    }
+	    		
+	}
+    
+    @EventHandler
+	public void SplashPotion(PotionSplashEvent event) {
+    	
+    	Entity entity=event.getEntity();
+		World gotworld=Bukkit.getWorld(plugin.getConfig().getString("world"));
+		
+		if(entity.getWorld()!=gotworld||!(entity instanceof Witch))return;
+    	
+    	for (PotionEffect pe: event.getPotion().getEffects()) {
+    		
+    		if(pe.getType()==PotionEffectType.POISON) event.setCancelled(true);
+    		
+    	}
+    	
+    	
+    	
+    }
+    
+
+    
+//    @EventHandler
+//	public void SplashPotion(PotionSplashEvent event) {
+//    	
+//    	Entity entity=event.getEntity();
+//		World gotworld=Bukkit.getWorld(plugin.getConfig().getString("world"));
+//		
+//		if(entity.getWorld()!=gotworld||!(entity instanceof Witch))return;
+//    	
+//    	for (PotionEffect pe: event.getPotion().getEffects()) {
+//    		
+//    		if(pe.getType()==PotionEffectType.POISON) event.setCancelled(true);
+//    		
+//    	}
+//    	
+//    	
+//    	
+//    }
+//    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    @EventHandler
+//	public void onInventoryClose(InventoryCloseEvent event) {
+//    	
+//    	Player player =(Player)event.getPlayer();
+//    	
+//		World gotworld=Bukkit.getWorld(plugin.getConfig().getString("world"));
+//				
+//		if(player.getWorld()!=gotworld)return;
+//		
+//		System.out.print("begin display name: "+player.getDisplayName());
+//		System.out.print("begin name: "+player.getName());
+//    	
+//    	
+//    	if(player.getInventory().getHelmet()!=null&&player.getInventory().getHelmet().getType()==Material.PLAYER_HEAD&& player.getDisplayName().contains(player.getName())) {
+//    		
+//    		System.out.print("begin object name : "+player.getInventory().getHelmet().getItemMeta().getDisplayName());
+//    		player.setDisplayName(player.getInventory().getHelmet().getItemMeta().getDisplayName());
+//    		//player.kickPlayer("Changement d'identité en cours");
+//    		
+//    	}else if (player.getInventory().getHelmet().getType()!=Material.PLAYER_HEAD&&player.getDisplayName().contains(player.getName())){
+//    	
+//    		player.setDisplayName(player.getName());
+//    		//player.kickPlayer("Changement d'identité en cours");
+//    	}
+//    	
+//		System.out.print("end display name: "+player.getDisplayName());
+//		System.out.print("end name: "+player.getName());
+//    	
+//    	
+//    }
+    
+    
     
 }

@@ -638,7 +638,7 @@ public class BossEvents implements Listener
 		if(e.getDamager().getCustomName() == plugin.bossf.getString("boss.4") && e.getEntity() instanceof Player)
 		{
 			Block block = e.getEntity().getLocation().getBlock();
-			block.setType(Material.WEB);
+			block.setType(Material.COBWEB);
 		}
 	}
 	
@@ -828,7 +828,7 @@ public class BossEvents implements Listener
 		}
 		for (Player online : Bukkit.getOnlinePlayers())
         {
-          online.playSound(online.getLocation(), Sound.ENTITY_LIGHTNING_THUNDER, 10.0F, -10.0F);
+          online.playSound(online.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 10.0F, -10.0F);
         }
 	}
 }
