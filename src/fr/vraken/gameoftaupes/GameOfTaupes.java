@@ -141,6 +141,7 @@ public class GameOfTaupes extends JavaPlugin {
 	boolean gameStarted = false;
 	boolean gameEnd = false;
 	boolean pvp = false;
+	boolean playerDeath = false;
 	Location lobbyLocation;
 	Location meetupLocation;
 	Location respawnLocation;
@@ -351,6 +352,7 @@ public class GameOfTaupes extends JavaPlugin {
 		this.supertaupessetup = false;
 		this.tmpBorder = this.getConfig().getInt("worldborder.size");
 		this.pvp = false;
+		this.playerDeath = false;
 
 		String world = getConfig().getString("world");
 		Boolean istimecycle = getConfig().getBoolean("options.timecycle");
@@ -559,6 +561,19 @@ public class GameOfTaupes extends JavaPlugin {
 				UpdateScoreboardStep();
 			}
 		}.runTaskLater(this, 1200 * getConfig().getInt("options.pvptime"));
+		
+		// PLAYER DEATH ENABLE
+		// ----------
+		new BukkitRunnable() {
+			public void run() {
+				EventsClass.playerDeath = true;
+				GameOfTaupes.this.playerDeath=true;
+				Bukkit.broadcastMessage(ChatColor.RED + "Vous pouvez maintenant mourir, faites attention !");
+
+				// Updating scoreboard status
+				UpdateScoreboardStep();
+			}
+		}.runTaskLater(this, 1200 * getConfig().getInt("options.nodeathtime"));
 
 		// TAUPES REVEAL
 		// -------------
@@ -905,20 +920,22 @@ public class GameOfTaupes extends JavaPlugin {
 	public void SetScoreboardSteps()
 	{
 		eventStrings.put(0, "PvP : ");
-		eventStrings.put(1, "Taupes : ");
-		eventStrings.put(2, "Supertaupe : ");
-		eventStrings.put(3, "World Border : ");
-		eventStrings.put(4, "Reveal : ");
-		eventStrings.put(5, "Super Reveal : ");
-		eventStrings.put(6, "Final Shrink : ");
+		eventStrings.put(1, "Player Death : ");
+		eventStrings.put(2, "Taupes : ");
+		eventStrings.put(3, "Supertaupe : ");
+		eventStrings.put(4, "World Border : ");
+		eventStrings.put(5, "Reveal : ");
+		eventStrings.put(6, "Super Reveal : ");
+		eventStrings.put(7, "Final Shrink : ");
 
 		eventTimers.put(0, getConfig().getInt("options.pvptime"));
-		eventTimers.put(1, getConfig().getInt("options.settaupesafter"));
-		eventTimers.put(2, getConfig().getInt("options.setsupertaupesafter"));
-		eventTimers.put(3, getConfig().getInt("worldborder.retractafter"));
-		eventTimers.put(4, getConfig().getInt("options.forcereveal"));
-		eventTimers.put(5, getConfig().getInt("options.superreveal"));
-		eventTimers.put(6, getConfig().getInt("worldborder.finalretract"));
+		eventTimers.put(1, getConfig().getInt("options.nodeathtime"));
+		eventTimers.put(2, getConfig().getInt("options.settaupesafter"));
+		eventTimers.put(3, getConfig().getInt("options.setsupertaupesafter"));
+		eventTimers.put(4, getConfig().getInt("worldborder.retractafter"));
+		eventTimers.put(5, getConfig().getInt("options.forcereveal"));
+		eventTimers.put(6, getConfig().getInt("options.superreveal"));
+		eventTimers.put(7, getConfig().getInt("worldborder.finalretract"));
 		
 		sortedByTimer = new ArrayList<Integer>();
 		eventTimers.entrySet()

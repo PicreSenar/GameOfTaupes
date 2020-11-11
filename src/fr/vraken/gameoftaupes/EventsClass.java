@@ -73,6 +73,7 @@ public class EventsClass implements Listener
 {
 	static GameOfTaupes plugin;
 	public static boolean pvp = false;
+	public static boolean playerDeath = false;
 	ItemStack playerSkull = new ItemStack(Material.LEGACY_SKULL);
 
 	public EventsClass(GameOfTaupes gameoftaupes)
@@ -559,30 +560,31 @@ public class EventsClass implements Listener
 	@EventHandler
 	public void PlayerImmunityBeforePvp(EntityDamageEvent e)
 	{
-		if(!plugin.gameStarted || plugin.gameEnd)
-		{
-			return;
-		}
-		
-		if(pvp)
+		if(!plugin.gameStarted 
+				|| plugin.gameEnd 
+				|| playerDeath)
 		{
 			return;
 		}
 
 		if(e.getEntity() instanceof Player)
 		{
-			Player player = (Player)e.getEntity();
-			if(plugin.playersInLobby.contains(player.getUniqueId()))
+			Player player = (Player)e.getEntity();			
+			if(e.getEntity() instanceof Player)
 			{
-				return;
-			}
-			if(!player.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE))
-			{
-				boolean lethal = (player.getHealth() - e.getFinalDamage()) < 1;
-				if(lethal)
+				if(!pvp || plugin.playersInLobby.contains(player.getUniqueId()))
 				{
-					e.setCancelled(true);
-					player.setHealth(1.0);
+					return;
+				}
+				
+				if(!player.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE))
+				{
+					boolean lethal = (player.getHealth() - e.getFinalDamage()) < 1;
+					if(lethal)
+					{
+						e.setCancelled(true);
+						player.setHealth(1.0);
+					}
 				}
 			}
 		}

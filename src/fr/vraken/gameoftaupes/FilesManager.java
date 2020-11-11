@@ -201,6 +201,7 @@ public class FilesManager
 		plugin.getConfig().addDefault("options.timecycle", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.minplayers", Integer.valueOf(20));
 		plugin.getConfig().addDefault("options.pvptime", Integer.valueOf(20));
+		plugin.getConfig().addDefault("options.nodeathtime", Integer.valueOf(20));
 		plugin.getConfig().addDefault("options.cooldown", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.playersperteam", Integer.valueOf(4));
 		plugin.getConfig().addDefault("options.settaupesafter", Integer.valueOf(10));

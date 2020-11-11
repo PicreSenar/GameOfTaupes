@@ -33,7 +33,8 @@ options:
   nodamagetime: 60
   timecycle: false
   minplayers: 4
-  pvptime: 3
+  pvptime: 2
+  nodeathtime: 3
   cooldown: false
   playersperteam: 7
   settaupesafter: 1
