@@ -15,49 +15,49 @@ import org.bukkit.scoreboard.Team;
 
 public class TeamsManager 
 {
-	static GameOfTaupes plugin;
+	GameOfTaupes plugin;
 
 	private FileConfiguration teamf;
 	private Scoreboard scoreboard;
 	
 	private int taupesTeams;
-	HashMap<Integer, Integer> taupesperteam = new HashMap<Integer, Integer>();
-	HashMap<Integer, Team> taupesteam = new HashMap<Integer, Team>();
-	HashMap<Integer, ArrayList<UUID>> taupes = new HashMap<Integer, ArrayList<UUID>>();
-	HashMap<Integer, Boolean> isTaupesTeamDead = new HashMap<Integer, Boolean>();
-	ArrayList<UUID> aliveTaupes = new ArrayList<UUID>();
-	ArrayList<UUID> showedtaupes = new ArrayList<UUID>();
-	ArrayList<UUID> claimedtaupes = new ArrayList<UUID>();
-	HashMap<Integer, ArrayList<Integer>> claimedkits = new HashMap<Integer, ArrayList<Integer>>();
+	public HashMap<Integer, Integer> taupesperteam = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Team> taupesteam = new HashMap<Integer, Team>();
+	public HashMap<Integer, ArrayList<UUID>> taupes = new HashMap<Integer, ArrayList<UUID>>();
+	public HashMap<Integer, Boolean> isTaupesTeamDead = new HashMap<Integer, Boolean>();
+	public ArrayList<UUID> aliveTaupes = new ArrayList<UUID>();
+	public ArrayList<UUID> showedtaupes = new ArrayList<UUID>();
+	public ArrayList<UUID> claimedtaupes = new ArrayList<UUID>();
+	public HashMap<Integer, ArrayList<Integer>> claimedkits = new HashMap<Integer, ArrayList<Integer>>();
 
 	private boolean supertaupeActive;
-	HashMap<Integer, Team> supertaupesteam = new HashMap<Integer, Team>();
-	HashMap<Integer, UUID> supertaupes = new HashMap<Integer, UUID>();
-	HashMap<Integer, Boolean> isSupertaupeDead = new HashMap<Integer, Boolean>();
-	ArrayList<UUID> aliveSupertaupes = new ArrayList<UUID>();
-	ArrayList<UUID> showedsupertaupes = new ArrayList<UUID>();
+	public HashMap<Integer, Team> supertaupesteam = new HashMap<Integer, Team>();
+	public HashMap<Integer, UUID> supertaupes = new HashMap<Integer, UUID>();
+	public HashMap<Integer, Boolean> isSupertaupeDead = new HashMap<Integer, Boolean>();
+	public ArrayList<UUID> aliveSupertaupes = new ArrayList<UUID>();
+	public ArrayList<UUID> showedsupertaupes = new ArrayList<UUID>();
 	
-	private String teamAnnounceString = "L'equipe ";
-	private String teamChoiceString = "son equipe";
+	public String teamAnnounceString = "L'equipe ";
+	public String teamChoiceString = "son equipe";
 
-	Location l1;
-	Location l2;
-	Location l3;
-	Location l4;
-	Location l5;
-	Location l6;
-	Location meetupl1;
-	Location meetupl2;
-	Location meetupl3;
-	Location meetupl4;
-	Location meetupl5;
-	Location meetupl6;
-	Team rose;
-	Team jaune;
-	Team violette;
-	Team cyan;
-	Team verte;
-	Team grise;
+	public Location l1;
+	public Location l2;
+	public Location l3;
+	public Location l4;
+	public Location l5;
+	public Location l6;
+	public Location meetupl1;
+	public Location meetupl2;
+	public Location meetupl3;
+	public Location meetupl4;
+	public Location meetupl5;
+	public Location meetupl6;
+	public Team blue;
+	public Team yellow;
+	public Team dark_purple;
+	public Team dark_aqua;
+	public Team dark_green;
+	public Team dark_gray;
 	
 	public TeamsManager(GameOfTaupes gameoftaupes, int t, boolean st)
 	{
@@ -78,35 +78,35 @@ public class TeamsManager
 
 	public void RegisterAll()
 	{
-		rose = scoreboard.registerNewTeam(teamf.getString("rose.name"));
-		rose.setPrefix(ChatColor.LIGHT_PURPLE.toString());
-		rose.setSuffix(ChatColor.WHITE.toString());
-		rose.setColor(ChatColor.LIGHT_PURPLE);
+		blue = scoreboard.registerNewTeam(teamf.getString("blue.name"));
+		blue.setPrefix(ChatColor.BLUE.toString());
+		blue.setSuffix(ChatColor.WHITE.toString());
+		blue.setColor(ChatColor.BLUE);
 		
-		cyan = scoreboard.registerNewTeam(teamf.getString("cyan.name"));
-		cyan.setPrefix(ChatColor.DARK_AQUA.toString());
-		cyan.setSuffix(ChatColor.WHITE.toString());
-		cyan.setColor(ChatColor.DARK_AQUA);
+		dark_aqua = scoreboard.registerNewTeam(teamf.getString("dark_aqua.name"));
+		dark_aqua.setPrefix(ChatColor.DARK_AQUA.toString());
+		dark_aqua.setSuffix(ChatColor.WHITE.toString());
+		dark_aqua.setColor(ChatColor.DARK_AQUA);
 		
-		jaune = scoreboard.registerNewTeam(teamf.getString("jaune.name"));
-		jaune.setPrefix(ChatColor.YELLOW.toString());
-		jaune.setSuffix(ChatColor.WHITE.toString());
-		jaune.setColor(ChatColor.YELLOW);
+		yellow = scoreboard.registerNewTeam(teamf.getString("yellow.name"));
+		yellow.setPrefix(ChatColor.YELLOW.toString());
+		yellow.setSuffix(ChatColor.WHITE.toString());
+		yellow.setColor(ChatColor.YELLOW);
 		
-		violette = scoreboard.registerNewTeam(teamf.getString("violette.name"));
-		violette.setPrefix(ChatColor.DARK_PURPLE.toString());
-		violette.setSuffix(ChatColor.WHITE.toString());
-		violette.setColor(ChatColor.DARK_PURPLE);
+		dark_purple = scoreboard.registerNewTeam(teamf.getString("dark_purple.name"));
+		dark_purple.setPrefix(ChatColor.DARK_PURPLE.toString());
+		dark_purple.setSuffix(ChatColor.WHITE.toString());
+		dark_purple.setColor(ChatColor.DARK_PURPLE);
 		
-		verte = scoreboard.registerNewTeam(teamf.getString("verte.name"));
-		verte.setPrefix(ChatColor.GREEN.toString());
-		verte.setSuffix(ChatColor.WHITE.toString());
-		verte.setColor(ChatColor.GREEN);
+		dark_green = scoreboard.registerNewTeam(teamf.getString("dark_green.name"));
+		dark_green.setPrefix(ChatColor.DARK_GREEN.toString());
+		dark_green.setSuffix(ChatColor.WHITE.toString());
+		dark_green.setColor(ChatColor.DARK_GREEN);
 		
-		grise = scoreboard.registerNewTeam(teamf.getString("grise.name"));
-		grise.setPrefix(ChatColor.GRAY.toString());
-		grise.setSuffix(ChatColor.WHITE.toString());
-		grise.setColor(ChatColor.GRAY);
+		dark_gray = scoreboard.registerNewTeam(teamf.getString("dark_gray.name"));
+		dark_gray.setPrefix(ChatColor.DARK_GRAY.toString());
+		dark_gray.setSuffix(ChatColor.WHITE.toString());
+		dark_gray.setColor(ChatColor.DARK_GRAY);
 
 		for (int i = 0; i < taupesTeams; ++i) 
 		{
@@ -130,22 +130,22 @@ public class TeamsManager
 	
 	public void SetSpawnLocations(String worldName, String worldLobbyName, boolean meetupteamtp) 
 	{
-		l1 = Utilities.GetLocationFromFile(teamf, worldName, "rose.");
-		l2 = Utilities.GetLocationFromFile(teamf, worldName, "cyan.");
-		l3 = Utilities.GetLocationFromFile(teamf, worldName, "jaune.");
-		l4 = Utilities.GetLocationFromFile(teamf, worldName, "violette.");
-		l5 = Utilities.GetLocationFromFile(teamf, worldName, "verte.");
-		l6 = Utilities.GetLocationFromFile(teamf, worldName, "grise.");
+		l1 = Utilities.GetLocationFromFile(teamf, worldName, "blue.");
+		l2 = Utilities.GetLocationFromFile(teamf, worldName, "dark_aqua.");
+		l3 = Utilities.GetLocationFromFile(teamf, worldName, "yellow.");
+		l4 = Utilities.GetLocationFromFile(teamf, worldName, "dark_purple.");
+		l5 = Utilities.GetLocationFromFile(teamf, worldName, "dark_green.");
+		l6 = Utilities.GetLocationFromFile(teamf, worldName, "dark_gray.");
 
 		if (!meetupteamtp) 
 			return;
 
-		meetupl1 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "rose.meetup");
-		meetupl2 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "cyan.meetup");
-		meetupl3 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "jaune.meetup");
-		meetupl4 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "violette.meetup");
-		meetupl5 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "verte.meetup");
-		meetupl6 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "grise.meetup");
+		meetupl1 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "blue.meetup");
+		meetupl2 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "dark_aqua.meetup");
+		meetupl3 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "yellow.meetup");
+		meetupl4 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "dark_purple.meetup");
+		meetupl5 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "dark_green.meetup");
+		meetupl6 = Utilities.GetLocationFromFile(teamf, worldLobbyName, "dark_gray.meetup");
 	}
 
 	public void ClearTeams() 
@@ -247,7 +247,7 @@ public class TeamsManager
 
 		Random random = new Random(System.currentTimeMillis());
 
-		for (int i = 0; i < getConfig().getInt("options.taupesteams"); ++i) 
+		for (int i = 0; i < plugin.getConfig().getInt("options.taupesteams"); ++i) 
 		{
 			int taupeIndex = random.nextInt(taupes.get(i).size());
 			UUID spId = taupes.get(i).get(taupeIndex);

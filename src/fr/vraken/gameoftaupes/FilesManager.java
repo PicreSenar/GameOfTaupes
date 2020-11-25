@@ -10,18 +10,16 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class FilesManager
 {
-	public File configf, teamf, bossf, deathf, minigamef;
-	private FileConfiguration config, team, boss, death, minigame;
+	public File configf, teamf, deathf;
+	private FileConfiguration config, team, death;
 	GameOfTaupes plugin;
 
 	public FilesManager(GameOfTaupes plugin) throws IOException, InvalidConfigurationException
 	{
 		this.plugin = plugin;
-		createFiles();
-		addConfigDefault();
-		addTeamDefault();
-		addBossDefault();
-		addMinigameDefault();
+		CreateFiles();
+		AddConfigDefault();
+		AddTeamDefault();
 	}
 
 	public FileConfiguration getTeamConfig() 
@@ -29,28 +27,16 @@ public class FilesManager
 		return this.team;
 	}
 
-	public FileConfiguration getBossConfig() 
-	{
-		return this.boss;
-	}
-
 	public FileConfiguration getDeathConfig() 
 	{
 		return this.death;
 	}
 
-	public FileConfiguration getMinigameConfig() 
-	{
-		return this.minigame;
-	}
-
-	private void createFiles() throws IOException 
+	private void CreateFiles() throws IOException 
 	{
 		configf = new File(plugin.getDataFolder(), "config.yml");
 		teamf = new File(plugin.getDataFolder(), "team.yml");
-		bossf = new File(plugin.getDataFolder(), "boss.yml");
 		deathf = new File(plugin.getDataFolder(), "death.yml");
-		minigamef = new File(plugin.getDataFolder(), "minigame.yml");
 
 		if (!configf.exists()) 
 		{
@@ -60,113 +46,68 @@ public class FilesManager
 		{
 			teamf.createNewFile();
 		}
-		if (!bossf.exists()) 
-		{
-			bossf.createNewFile();
-		}
 		if (!deathf.exists()) 
 		{
 			deathf.createNewFile();
 		}
-		if (!minigamef.exists()) 
-		{
-			minigamef.createNewFile();
-		}
 
 		config = new YamlConfiguration();
 		team = new YamlConfiguration();
-		boss = new YamlConfiguration();
 		death = new YamlConfiguration();
-		minigame = new YamlConfiguration();
 	}
 
-	public void addTeamDefault() throws IOException, InvalidConfigurationException
+	public void AddTeamDefault() throws IOException, InvalidConfigurationException
 	{
 		team.load(teamf);
 
-		team.addDefault("rose.name", "rose");
-		team.addDefault("rose.X", Integer.valueOf(500));
-		team.addDefault("rose.Y", Integer.valueOf(250));
-		team.addDefault("rose.Z", Integer.valueOf(500));
-		team.addDefault("rose.meetupX", Integer.valueOf(500));
-		team.addDefault("rose.meetupY", Integer.valueOf(250));
-		team.addDefault("rose.meetupZ", Integer.valueOf(500));
-		team.addDefault("cyan.name", "cyan");
-		team.addDefault("cyan.X", Integer.valueOf(500));
-		team.addDefault("cyan.Y", Integer.valueOf(250));
-		team.addDefault("cyan.Z", Integer.valueOf(-500));
-		team.addDefault("cyan.meetupX", Integer.valueOf(500));
-		team.addDefault("cyan.meetupY", Integer.valueOf(250));
-		team.addDefault("cyan.meetupZ", Integer.valueOf(-500));
-		team.addDefault("jaune.name", "jaune");
-		team.addDefault("jaune.X", Integer.valueOf(-500));
-		team.addDefault("jaune.Y", Integer.valueOf(250));
-		team.addDefault("jaune.Z", Integer.valueOf(500));
-		team.addDefault("jaune.meetupX", Integer.valueOf(-500));
-		team.addDefault("jaune.meetupY", Integer.valueOf(250));
-		team.addDefault("jaune.meetupZ", Integer.valueOf(500));
-		team.addDefault("violette.name", "violette");
-		team.addDefault("violette.X", Integer.valueOf(-500));
-		team.addDefault("violette.Y", Integer.valueOf(250));
-		team.addDefault("violette.Z", Integer.valueOf(-500));
-		team.addDefault("violette.meetupX", Integer.valueOf(-500));
-		team.addDefault("violette.meetupY", Integer.valueOf(250));
-		team.addDefault("violette.meetupZ", Integer.valueOf(-500));
-		team.addDefault("verte.name", "verte");
-		team.addDefault("verte.X", Integer.valueOf(0));
-		team.addDefault("verte.Y", Integer.valueOf(250));
-		team.addDefault("verte.Z", Integer.valueOf(0));
-		team.addDefault("verte.meetupX", Integer.valueOf(0));
-		team.addDefault("verte.meetupY", Integer.valueOf(250));
-		team.addDefault("verte.meetupZ", Integer.valueOf(0));
-		team.addDefault("grise.name", "grise");
-		team.addDefault("grise.X", Integer.valueOf(0));
-		team.addDefault("grise.Y", Integer.valueOf(250));
-		team.addDefault("grise.Z", Integer.valueOf(0));
-		team.addDefault("grise.meetupX", Integer.valueOf(0));
-		team.addDefault("grise.meetupY", Integer.valueOf(250));
-		team.addDefault("grise.meetupZ", Integer.valueOf(0));
+		team.addDefault("blue.name", "blue");
+		team.addDefault("blue.X", Integer.valueOf(500));
+		team.addDefault("blue.Y", Integer.valueOf(250));
+		team.addDefault("blue.Z", Integer.valueOf(500));
+		team.addDefault("blue.meetupX", Integer.valueOf(500));
+		team.addDefault("blue.meetupY", Integer.valueOf(250));
+		team.addDefault("blue.meetupZ", Integer.valueOf(500));
+		team.addDefault("dark_aqua.name", "dark_aqua");
+		team.addDefault("dark_aqua.X", Integer.valueOf(500));
+		team.addDefault("dark_aqua.Y", Integer.valueOf(250));
+		team.addDefault("dark_aqua.Z", Integer.valueOf(-500));
+		team.addDefault("dark_aqua.meetupX", Integer.valueOf(500));
+		team.addDefault("dark_aqua.meetupY", Integer.valueOf(250));
+		team.addDefault("dark_aqua.meetupZ", Integer.valueOf(-500));
+		team.addDefault("yellow.name", "yellow");
+		team.addDefault("yellow.X", Integer.valueOf(-500));
+		team.addDefault("yellow.Y", Integer.valueOf(250));
+		team.addDefault("yellow.Z", Integer.valueOf(500));
+		team.addDefault("yellow.meetupX", Integer.valueOf(-500));
+		team.addDefault("yellow.meetupY", Integer.valueOf(250));
+		team.addDefault("yellow.meetupZ", Integer.valueOf(500));
+		team.addDefault("dark_purple.name", "dark_purple");
+		team.addDefault("dark_purple.X", Integer.valueOf(-500));
+		team.addDefault("dark_purple.Y", Integer.valueOf(250));
+		team.addDefault("dark_purple.Z", Integer.valueOf(-500));
+		team.addDefault("dark_purple.meetupX", Integer.valueOf(-500));
+		team.addDefault("dark_purple.meetupY", Integer.valueOf(250));
+		team.addDefault("dark_purple.meetupZ", Integer.valueOf(-500));
+		team.addDefault("dark_green.name", "dark_green");
+		team.addDefault("dark_green.X", Integer.valueOf(0));
+		team.addDefault("dark_green.Y", Integer.valueOf(250));
+		team.addDefault("dark_green.Z", Integer.valueOf(0));
+		team.addDefault("dark_green.meetupX", Integer.valueOf(0));
+		team.addDefault("dark_green.meetupY", Integer.valueOf(250));
+		team.addDefault("dark_green.meetupZ", Integer.valueOf(0));
+		team.addDefault("dark_gray.name", "dark_gray");
+		team.addDefault("dark_gray.X", Integer.valueOf(0));
+		team.addDefault("dark_gray.Y", Integer.valueOf(250));
+		team.addDefault("dark_gray.Z", Integer.valueOf(0));
+		team.addDefault("dark_gray.meetupX", Integer.valueOf(0));
+		team.addDefault("dark_gray.meetupY", Integer.valueOf(250));
+		team.addDefault("dark_gray.meetupZ", Integer.valueOf(0));
 
 		team.options().copyDefaults(true);
 		team.save(teamf);
 	}
 
-	public void addBossDefault() throws FileNotFoundException, IOException, InvalidConfigurationException
-	{
-		boss.load(bossf);
-
-		boss.addDefault("boss.active", Boolean.valueOf(false));		
-		boss.addDefault("boss.1", "Gothmog");
-		boss.addDefault("boss.2", "Lurtz");
-		boss.addDefault("boss.3", "le berzerker");
-		boss.addDefault("boss.4", "Arachne");
-		boss.addDefault("boss.5", "les gobelins");
-		boss.addDefault("boss.6", "Saroumane");
-
-		boss.addDefault("temple1.X", Integer.valueOf(250));
-		boss.addDefault("temple1.Y", Integer.valueOf(70));
-		boss.addDefault("temple1.Z", Integer.valueOf(250));
-		boss.addDefault("temple2.X", Integer.valueOf(250));
-		boss.addDefault("temple2.Y", Integer.valueOf(70));
-		boss.addDefault("temple2.Z", Integer.valueOf(250));
-		boss.addDefault("temple3.X", Integer.valueOf(250));
-		boss.addDefault("temple3.Y", Integer.valueOf(70));
-		boss.addDefault("temple3.Z", Integer.valueOf(250));
-		boss.addDefault("temple4.X", Integer.valueOf(250));
-		boss.addDefault("temple4.Y", Integer.valueOf(70));
-		boss.addDefault("temple4.Z", Integer.valueOf(250));
-		boss.addDefault("temple5.X", Integer.valueOf(250));
-		boss.addDefault("temple5.Y", Integer.valueOf(70));
-		boss.addDefault("temple5.Z", Integer.valueOf(250));
-		boss.addDefault("temple6.X", Integer.valueOf(250));
-		boss.addDefault("temple6.Y", Integer.valueOf(70));
-		boss.addDefault("temple6.Z", Integer.valueOf(250));
-
-		boss.options().copyDefaults(true);
-		boss.save(bossf);
-	}
-
-	public void addConfigDefault() throws FileNotFoundException, IOException, InvalidConfigurationException
+	public void AddConfigDefault() throws FileNotFoundException, IOException, InvalidConfigurationException
 	{
 		config.load(configf);
 
@@ -186,11 +127,7 @@ public class FilesManager
 		plugin.getConfig().addDefault("lobby.meetupX", Integer.valueOf(0));
 		plugin.getConfig().addDefault("lobby.meetupY", Integer.valueOf(100));
 		plugin.getConfig().addDefault("lobby.meetupZ", Integer.valueOf(0));
-		plugin.getConfig().addDefault("chest.random", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("chest.timer", Integer.valueOf(10));
-		plugin.getConfig().addDefault("chest.X", Integer.valueOf(0));
-		plugin.getConfig().addDefault("chest.Y", Integer.valueOf(62));
-		plugin.getConfig().addDefault("chest.Z", Integer.valueOf(0));
 		plugin.getConfig().addDefault("potions.regeneration", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("potions.strength", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("world", "world");
@@ -200,7 +137,7 @@ public class FilesManager
 		plugin.getConfig().addDefault("options.nodamagetime", Integer.valueOf(20));
 		plugin.getConfig().addDefault("options.timecycle", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.minplayers", Integer.valueOf(20));
-		plugin.getConfig().addDefault("options.pvptime", Integer.valueOf(20));
+		plugin.getConfig().addDefault("options.pvptime", Integer.valueOf(10));
 		plugin.getConfig().addDefault("options.nodeathtime", Integer.valueOf(20));
 		plugin.getConfig().addDefault("options.cooldown", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.playersperteam", Integer.valueOf(4));
@@ -212,42 +149,15 @@ public class FilesManager
 		plugin.getConfig().addDefault("options.autosmelting", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.fastcooking", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.cookingmultiplier", Integer.valueOf(1));
+		plugin.getConfig().addDefault("options.cooktime", Integer.valueOf(100));
 		plugin.getConfig().addDefault("options.haste", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.saturation", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.meetupteamtp", Boolean.valueOf(false));
 		plugin.getConfig().addDefault("options.revealing", Boolean.valueOf(false));
 		
-		plugin.getConfig().addDefault("options.job.mineur", Boolean.valueOf(false));
-		plugin.getConfig().addDefault("options.job.bucheron", Boolean.valueOf(false));
-		plugin.getConfig().addDefault("options.job.chasseur", Boolean.valueOf(false));
-		
-		
-
-		plugin.getConfig().addDefault("duelspawn1.X", Integer.valueOf(0));
-		plugin.getConfig().addDefault("duelspawn1.Y", Integer.valueOf(250));
-		plugin.getConfig().addDefault("duelspawn1.Z", Integer.valueOf(0));
-		plugin.getConfig().addDefault("duelspawn2.X", Integer.valueOf(0));
-		plugin.getConfig().addDefault("duelspawn2.Y", Integer.valueOf(250));
-		plugin.getConfig().addDefault("duelspawn2.Z", Integer.valueOf(0));
-		
 		plugin.getConfig().addDefault("Disallowed enchants", String.valueOf(""));
 
 		plugin.getConfig().options().copyDefaults(true);
 		plugin.saveConfig();
-	}
-	
-	public void addMinigameDefault() throws IOException, InvalidConfigurationException
-	{
-		minigame.load(minigamef);
-
-		minigame.addDefault("skywars.bound_min.X", 0);
-		minigame.addDefault("skywars.bound_min.Y", 0);
-		minigame.addDefault("skywars.bound_min.Z", 0);
-		minigame.addDefault("skywars.bound_max.X", 100);
-		minigame.addDefault("skywars.bound_max.Y", 100);
-		minigame.addDefault("skywars.bound_max.Z", 100);
-
-		minigame.options().copyDefaults(true);
-		minigame.save(minigamef);
 	}
 }

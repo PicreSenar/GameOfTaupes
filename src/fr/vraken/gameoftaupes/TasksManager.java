@@ -8,7 +8,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 public class TasksManager 
 {
-	static GameOfTaupes plugin;	
+	GameOfTaupes plugin;	
 	private CustomScoreboardManager customScoreboardManager;
 
 	private ArrayList<BukkitTask> tasks = new ArrayList<BukkitTask>();
@@ -21,7 +21,6 @@ public class TasksManager
 
 	public void LaunchTasks(FileConfiguration config)
 	{
-
 		BukkitTask scoreboardTask = new BukkitRunnable() 
 		{
 			public void run() 
@@ -37,6 +36,14 @@ public class TasksManager
 				plugin.EnablePvp();
 			}
 		}.runTaskLater(plugin, 1200 * config.getInt("options.pvptime"));
+
+		BukkitTask playerDeathTask = new BukkitRunnable() 
+		{
+			public void run() 
+			{
+				plugin.EnablePlayerDeath();
+			}
+		}.runTaskLater(plugin, 1200 * config.getInt("options.nodeathtime"));
 
 		BukkitTask taupesAnnouceTask = new BukkitRunnable() 
 		{
@@ -94,9 +101,22 @@ public class TasksManager
 			}
 
 		}.runTaskTimer(plugin, 0, 40);
+		
+		BukkitTask chestTask = new BukkitRunnable() 
+		{
+			public void run() 
+			{
+				if (plugin.finalZone) 
+					this.cancel();
+
+				plugin.SpawnChest();
+			}
+
+		}.runTaskTimer(plugin, 6000, 1200 * config.getInt("chest.timer"));
 
 		tasks.add(scoreboardTask);
 		tasks.add(pvpTask);
+		tasks.add(playerDeathTask);
 		tasks.add(taupesAnnouceTask);
 		tasks.add(taupesRevealTask);
 		tasks.add(supertaupesAnnouceTask);
@@ -104,24 +124,7 @@ public class TasksManager
 		tasks.add(borderShrinkTask);
 		tasks.add(borderFinalShrinkTask);
 		tasks.add(borderFinalFinalShrinkTask);
-		
-
-		if (config.getBoolean("chest.random")) 
-		{
-			BukkitTask chestTask = new BukkitRunnable() 
-			{
-				public void run() 
-				{
-					if (plugin.finalZone) 
-						this.cancel();
-
-					plugin.SpawnChest();
-				}
-
-			}.runTaskTimer(plugin, 6000, 1200 * config.getInt("chest.timer"));
-
-			tasks.add(chestTask);
-		}
+		tasks.add(chestTask);
 	}
 
 	public void CancelAllTasks()

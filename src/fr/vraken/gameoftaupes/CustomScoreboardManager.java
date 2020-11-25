@@ -17,36 +17,37 @@ import org.bukkit.scoreboard.ScoreboardManager;
 
 /*
  0 : PvP
- 1 : Taupes
- 2 : Supertaupe
- 3 : Shrink
- 4 : Reveal
- 5 : SuperReveal
- 6 : FinalShrink  
+ 1 : PlayerDeath
+ 2 : Taupes
+ 3 : Supertaupe
+ 4 : Shrink
+ 5 : Reveal
+ 6 : SuperReveal
+ 7 : FinalShrink  
  */
 
 public class CustomScoreboardManager 
 {	
-	static GameOfTaupes plugin;
+	GameOfTaupes plugin;
 
 	int eventIndex;	
 	HashMap<Integer, Integer> eventTimers = new HashMap<Integer, Integer>();
 	HashMap<Integer, String> eventStrings = new HashMap<Integer, String>();
 	ArrayList<Integer> sortedByTimer = new ArrayList<Integer>();
 
-	int episode;
-	int minute;
-	int second;
-	int minuteTot;
-	int minuteToObj;
-	int tmpPlayers;
-	int tmpBorder;
-	ScoreboardManager sm;
-	Scoreboard s;
-	Objective obj;
-	Objective vie;
-	NumberFormat objFormatter;
-	int height = 10;
+	public int episode;
+	public int minute;
+	public int second;
+	public int minuteTot;
+	public int minuteToObj;
+	public int tmpPlayers;
+	public int tmpBorder;
+	public ScoreboardManager sm;
+	public Scoreboard s;
+	public Objective obj;
+	public Objective vie;
+	public NumberFormat objFormatter;
+	public int height = 10;
 
 	public CustomScoreboardManager(GameOfTaupes gameoftaupes)
 	{
@@ -69,20 +70,22 @@ public class CustomScoreboardManager
 		objFormatter = new DecimalFormat("00");
 
 		eventStrings.put(0, "PvP : ");
-		eventStrings.put(1, "Taupes : ");
-		eventStrings.put(2, "Supertaupe : ");
-		eventStrings.put(3, "World Border : ");
-		eventStrings.put(4, "Reveal : ");
-		eventStrings.put(5, "Super Reveal : ");
-		eventStrings.put(6, "Final Shrink : ");
+		eventStrings.put(1, "Player Death : ");
+		eventStrings.put(2, "Taupes : ");
+		eventStrings.put(3, "Supertaupe : ");
+		eventStrings.put(4, "World Border : ");
+		eventStrings.put(5, "Reveal : ");
+		eventStrings.put(6, "Super Reveal : ");
+		eventStrings.put(7, "Final Shrink : ");
 
 		eventTimers.put(0, plugin.getConfig().getInt("options.pvptime"));
-		eventTimers.put(1, plugin.getConfig().getInt("options.settaupesafter"));
-		eventTimers.put(2, plugin.getConfig().getInt("options.setsupertaupesafter"));
-		eventTimers.put(3, plugin.getConfig().getInt("worldborder.retractafter"));
-		eventTimers.put(4, plugin.getConfig().getInt("options.forcereveal"));
-		eventTimers.put(5, plugin.getConfig().getInt("options.superreveal"));
-		eventTimers.put(6, plugin.getConfig().getInt("worldborder.finalretract"));
+		eventTimers.put(1, plugin.getConfig().getInt("options.nodeathtime"));
+		eventTimers.put(2, plugin.getConfig().getInt("options.settaupesafter"));
+		eventTimers.put(3, plugin.getConfig().getInt("options.setsupertaupesafter"));
+		eventTimers.put(4, plugin.getConfig().getInt("worldborder.retractafter"));
+		eventTimers.put(5, plugin.getConfig().getInt("options.forcereveal"));
+		eventTimers.put(6, plugin.getConfig().getInt("options.superreveal"));
+		eventTimers.put(7, plugin.getConfig().getInt("worldborder.finalretract"));
 
 		sortedByTimer = new ArrayList<Integer>(SortByValue(eventTimers).keySet());
 	}
@@ -200,6 +203,5 @@ public class CustomScoreboardManager
 				.sorted((Map.Entry.<Integer, Integer>comparingByValue().reversed()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 	}
-
 
 }
